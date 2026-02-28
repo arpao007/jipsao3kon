@@ -2,7 +2,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.*;
-import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -16,16 +15,12 @@ public class MainMenu extends JPanel {
 
     // ── Palette ──
     private static final Color BG_TOP        = new Color(0xF7D6E0);
-    private static final Color BG_MID        = new Color(0xEEC6D8);
     private static final Color BG_BOT        = new Color(0xD9AED0);
-    private static final Color CARD_FILL     = new Color(0xFFF0F5, true);
     private static final Color PINK_DEEP     = new Color(0xE8759A);
     private static final Color PINK_LIGHT    = new Color(0xF5A8C5);
     private static final Color LILAC         = new Color(0xC9A0DC);
     private static final Color LILAC_DARK    = new Color(0xA076BB);
-    private static final Color MINT          = new Color(0xB5E8D5);
     private static final Color BLUE_SOFT     = new Color(0xADD8E6);
-    private static final Color TEXT_DARK     = new Color(0x5A3060);
     private static final Color TEXT_WHITE    = new Color(0xFFF5FA);
     private static final Color GOLD          = new Color(0xF0C060);
 
@@ -54,7 +49,7 @@ public class MainMenu extends JPanel {
     // Floating petal system
     // ─────────────────────────────────────────────
     private static class Petal {
-        float x, y, size, speed, sway, phase, rot, rotSpeed;
+        float x, y, size, speed, phase, rot, rotSpeed;
         Color color;
         Petal(int w) {
             Random r = new Random();
@@ -62,7 +57,6 @@ public class MainMenu extends JPanel {
             y       = -r.nextFloat() * 800;
             size    = 6 + r.nextFloat() * 14;
             speed   = 0.6f + r.nextFloat() * 1.2f;
-            sway    = 30 + r.nextFloat() * 60;
             phase   = r.nextFloat() * (float)(Math.PI * 2);
             rot     = r.nextFloat() * 360;
             rotSpeed= 0.5f + r.nextFloat() * 2f;
@@ -260,6 +254,7 @@ public class MainMenu extends JPanel {
                 setCursor(new Cursor(Cursor.HAND_CURSOR));
 
                 addMouseListener(new MouseAdapter() {
+                    @Override
                     public void mouseEntered(MouseEvent e) {
                         hover = true;
                         if (pt == null) {
@@ -267,12 +262,15 @@ public class MainMenu extends JPanel {
                             pt.start();
                         }
                     }
+                    @Override
                     public void mouseExited(MouseEvent e) {
                         hover = false; press = false;
                         if (pt != null) { pt.stop(); pt = null; }
                         pulse = 0; repaint();
                     }
+                    @Override
                     public void mousePressed(MouseEvent e)  { press = true;  repaint(); }
+                    @Override
                     public void mouseReleased(MouseEvent e) {
                         press = false; repaint();
                         if (hover) action.run();
@@ -373,7 +371,7 @@ public class MainMenu extends JPanel {
         add(rightCard);
     }
 
-    private JPanel makeDecorCard(String[] emojis, int[] xs, int[] ys) {
+    private JPanel makeDecorCard(String[] emojis, int[] xOffsets, int[] yOffsets) {
         JPanel p = new JPanel(null) {
             @Override protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g;

@@ -6,14 +6,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-/**
- * MainMenu.java
- * หน้าเมนูหลัก — Cozy Pastel Romance Style
- * ปุ่ม: New Game | Load Save | Multiplayer | Exit
- */
+
 public class MainMenu extends JPanel {
 
-    // ── Palette ──
     private static final Color BG_TOP        = new Color(0xF7D6E0);
     private static final Color BG_BOT        = new Color(0xD9AED0);
     private static final Color PINK_DEEP     = new Color(0xE8759A);
@@ -27,14 +22,11 @@ public class MainMenu extends JPanel {
     private final CardLayout cardLayout;
     private final JPanel     mainContainer;
 
-    // Floating petals
     private final List<Petal> petals = new ArrayList<>();
     private Timer animTimer;
 
-    // Wiggle state for buttons
     private float wiggleTime = 0f;
 
-    // ─────────────────────────────────────────────
     public MainMenu(CardLayout cardLayout, JPanel mainContainer) {
         this.cardLayout    = cardLayout;
         this.mainContainer = mainContainer;
@@ -45,9 +37,7 @@ public class MainMenu extends JPanel {
         startAnimation();
     }
 
-    // ─────────────────────────────────────────────
-    // Floating petal system
-    // ─────────────────────────────────────────────
+
     private static class Petal {
         float x, y, size, speed, phase, rot, rotSpeed;
         Color color;
@@ -88,9 +78,6 @@ public class MainMenu extends JPanel {
         animTimer.start();
     }
 
-    // ─────────────────────────────────────────────
-    // Background & petals paint
-    // ─────────────────────────────────────────────
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
@@ -98,18 +85,14 @@ public class MainMenu extends JPanel {
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,  RenderingHints.VALUE_ANTIALIAS_ON);
         g2.setRenderingHint(RenderingHints.KEY_RENDERING,     RenderingHints.VALUE_RENDER_QUALITY);
 
-        // ── Gradient background ──
         GradientPaint gp = new GradientPaint(0, 0, BG_TOP, 0, 800, BG_BOT);
         g2.setPaint(gp);
         g2.fillRect(0, 0, 1200, 800);
 
-        // ── Soft bokeh circles ──
         drawBokeh(g2);
 
-        // ── Petals ──
         for (Petal p : petals) drawPetal(g2, p);
 
-        // ── Decorative top ribbon ──
         drawRibbon(g2);
     }
 
@@ -135,7 +118,6 @@ public class MainMenu extends JPanel {
         pg.translate(p.x, p.y);
         pg.rotate(Math.toRadians(p.rot));
         pg.setColor(new Color(p.color.getRed(), p.color.getGreen(), p.color.getBlue(), 200));
-        // teardrop petal shape
         Path2D path = new Path2D.Float();
         path.moveTo(0, -p.size);
         path.curveTo(p.size*0.6f, -p.size*0.5f, p.size*0.6f, p.size*0.5f, 0, p.size*0.3f);
@@ -145,7 +127,6 @@ public class MainMenu extends JPanel {
     }
 
     private void drawRibbon(Graphics2D g2) {
-        // soft wave at top
         Path2D wave = new Path2D.Float();
         wave.moveTo(0, 0);
         wave.curveTo(300, 30, 600, -10, 900, 25);
@@ -155,7 +136,6 @@ public class MainMenu extends JPanel {
         g2.setColor(new Color(0xF9C4DA));
         g2.fill(wave);
 
-        // bottom decorative wave
         Path2D waveB = new Path2D.Float();
         waveB.moveTo(0, 800);
         waveB.curveTo(200, 765, 500, 785, 700, 770);
@@ -166,24 +146,17 @@ public class MainMenu extends JPanel {
         g2.fill(waveB);
     }
 
-    // ─────────────────────────────────────────────
-    // Build UI components
-    // ─────────────────────────────────────────────
     private void buildUI() {
 
-        // ── Title card ──
         JPanel titleCard = new JPanel(null) {
             @Override protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g;
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                // Soft card bg
                 g2.setColor(new Color(255, 240, 248, 200));
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), 40, 40);
-                // Border
                 g2.setStroke(new BasicStroke(3f));
                 g2.setColor(new Color(0xE8759A, false));
                 g2.drawRoundRect(2, 2, getWidth()-4, getHeight()-4, 38, 38);
-                // Inner shimmer
                 GradientPaint sh = new GradientPaint(0,0, new Color(255,255,255,80), getWidth(), getHeight(), new Color(255,200,230,0));
                 g2.setPaint(sh);
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), 40, 40);
@@ -192,7 +165,6 @@ public class MainMenu extends JPanel {
         titleCard.setOpaque(false);
         titleCard.setBounds(300, 60, 600, 180);
 
-        // Star decorations
         JLabel starL = makeStarLabel();
         starL.setBounds(20, 20, 40, 40);
         titleCard.add(starL);
@@ -200,7 +172,6 @@ public class MainMenu extends JPanel {
         starR.setBounds(540, 20, 40, 40);
         titleCard.add(starR);
 
-        // Game title
         JLabel title1 = new JLabel("✿ First Love ✿", SwingConstants.CENTER);
         title1.setFont(loadFont(58));
         title1.setForeground(PINK_DEEP);
@@ -215,19 +186,18 @@ public class MainMenu extends JPanel {
 
         add(titleCard);
 
-        // ── Buttons ──
         int btnW  = 300;
-        int btnH  = 72;
+        int btnH  = 66;
         int startX = (1200 - btnW) / 2;
-        int startY = 290;
-        int gap   = 90;
+        int startY = 255;
+        int gap   = 82;
 
         add(makeMenuButton("🌸  New Game",   PINK_DEEP,   PINK_LIGHT, startX, startY,           btnW, btnH, () -> onNewGame()));
         add(makeMenuButton("💾  Load Save",  LILAC_DARK,  LILAC,      startX, startY + gap,     btnW, btnH, () -> onLoadSave()));
         add(makeMenuButton("🌐  Multiplayer",new Color(0x5B9AD5), BLUE_SOFT, startX, startY + gap*2, btnW, btnH, () -> onMultiplayer()));
-        add(makeMenuButton("🚪  Exit",       new Color(0xB06090), new Color(0xE0A8C8), startX, startY + gap*3, btnW, btnH, () -> onExit()));
+        add(makeMenuButton("⚙   Settings",  new Color(0x7080B0), new Color(0xB0C4DE), startX, startY + gap*3, btnW, btnH, () -> onSettings()));
+        add(makeMenuButton("🚪  Exit",       new Color(0xB06090), new Color(0xE0A8C8), startX, startY + gap*4, btnW, btnH, () -> onExit()));
 
-        // ── Bottom credits ──
         JLabel credit = new JLabel("♡  First Love Game  •  v1.0  ♡", SwingConstants.CENTER);
         credit.setFont(new Font("Tahoma", Font.ITALIC, 14));
         credit.setForeground(new Color(0x9060A0));
@@ -236,9 +206,6 @@ public class MainMenu extends JPanel {
 
     }
 
-    // ─────────────────────────────────────────────
-    // Custom rounded button
-    // ─────────────────────────────────────────────
     private JPanel makeMenuButton(String text, Color colorDeep, Color colorLight,
                                    int x, int y, int w, int h, Runnable action) {
         JPanel btn = new JPanel(null) {
@@ -284,13 +251,11 @@ public class MainMenu extends JPanel {
                 int oy = press ? 4 : hover ? -3 : 0;
                 int px = press ? 0 : hover ? (int)(Math.sin(pulse)*2) : 0;
 
-                // Shadow
                 if (!press) {
                     g2.setColor(new Color(0, 0, 0, 30));
                     g2.fillRoundRect(px+5, oy+8, w, h, 36, 36);
                 }
 
-                // Main body gradient
                 GradientPaint bodyGrad = new GradientPaint(
                     0, oy, hover ? colorLight.brighter() : colorLight,
                     0, oy + h, hover ? colorDeep : colorDeep.darker()
@@ -298,16 +263,13 @@ public class MainMenu extends JPanel {
                 g2.setPaint(bodyGrad);
                 g2.fillRoundRect(px, oy, w, h, 36, 36);
 
-                // Inner shine
                 g2.setColor(new Color(255, 255, 255, hover ? 80 : 50));
                 g2.fillRoundRect(px+6, oy+5, w-12, h/2-4, 24, 24);
 
-                // Border
                 g2.setStroke(new BasicStroke(2.5f));
                 g2.setColor(new Color(255, 255, 255, 160));
                 g2.drawRoundRect(px+1, oy+1, w-2, h-2, 35, 35);
 
-                // Sparkle dots on hover
                 if (hover) {
                     g2.setColor(new Color(255, 240, 100, 180));
                     int[] sx = {px+15, px+w-20, px+w/2};
@@ -318,17 +280,15 @@ public class MainMenu extends JPanel {
                     }
                 }
 
-                // Text
                 g2.setFont(new Font("Tahoma", Font.BOLD, 22));
                 FontMetrics fm = g2.getFontMetrics();
                 String label = text;
                 int tx = px + (w - fm.stringWidth(label)) / 2;
                 int ty = oy + (h + fm.getAscent() - fm.getDescent()) / 2;
 
-                // Text shadow
                 g2.setColor(new Color(0, 0, 0, 40));
                 g2.drawString(label, tx+2, ty+2);
-                // Text main
+
                 g2.setColor(TEXT_WHITE);
                 g2.drawString(label, tx, ty);
             }
@@ -346,11 +306,7 @@ public class MainMenu extends JPanel {
         g2.drawLine(cx-d, cy+d, cx+d, cy-d);
     }
 
-    // ─────────────────────────────────────────────
 
-    // ─────────────────────────────────────────────
-    // Font helper
-    // ─────────────────────────────────────────────
     private Font loadFont(float size) {
         // Try a round/cute fallback chain
         String[] candidates = {"Comic Sans MS", "Chalkboard SE", "Tahoma"};
@@ -368,9 +324,6 @@ public class MainMenu extends JPanel {
         return lbl;
     }
 
-    // ─────────────────────────────────────────────
-    // Button actions
-    // ─────────────────────────────────────────────
     private void onNewGame() {
         int opt = JOptionPane.showConfirmDialog(this,
             "<html><div style='font-family:Tahoma;font-size:15px;text-align:center'>" +
@@ -398,6 +351,10 @@ public class MainMenu extends JPanel {
         cardLayout.show(mainContainer, "LOBBY");
     }
 
+    private void onSettings() {
+        cardLayout.show(mainContainer, "SETTINGS");
+    }
+
     private void onExit() {
         int opt = JOptionPane.showConfirmDialog(this,
             "<html><div style='font-family:Tahoma;font-size:15px;text-align:center'>" +
@@ -410,7 +367,6 @@ public class MainMenu extends JPanel {
         }
     }
 
-    // cleanup
     public void onHide() {
         if (animTimer != null) animTimer.stop();
     }

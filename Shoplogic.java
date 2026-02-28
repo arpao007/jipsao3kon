@@ -155,23 +155,7 @@ public class Shoplogic {
     // ========================================
     // จัดการโควต้าของขวัญภายใน
     // ========================================
-    // เนื่องจาก GameLogic ไม่มี method ลดโควต้าโดยตรง
-    // เราใช้วิธี sendGift dummy เพื่อลดโควต้า แต่หักเงินไปแล้วข้างบน
-    // ดังนั้นสร้าง internal gift-quota tracker แยก
-    private int localGiftQuotaUsed = 0;
-
     private void decreaseGiftQuota() {
-        // บันทึกไว้ว่าเราใช้โควต้าไปแล้วกี่ครั้ง (ใน session นี้)
-        // GameLogic.getGiftQuota() จะยังคงแสดงค่าที่ไม่ถูกต้อง
-        // วิธีที่ดีที่สุดคือให้ GameLogic expose decreaseGiftQuota()
-        // แต่เพื่อไม่แก้ไขไฟล์อื่น: เราเรียก sendGift กับ dummy character
-        // *** วิธีที่ถูกต้องที่สุดคือ: ใช้ reflection หรือ expose method ***
-        // สำหรับโปรเจกต์นี้: ใช้ sendGift("cheap") แล้ว undo เงินและ affection
-        // เพื่อให้โควต้าลดลงใน GameLogic โดยไม่แก้ไขไฟล์อื่น
-
-        int moneyBefore     = gameLogic.getMoney();
-        int affectionBefore = gameLogic.getCurrentAffection();
-
         // sendGift จะ: ตรวจโควต้า -> หักเงิน 50 -> +5 ความชอบ -> ลดโควต้า 1
         int result = gameLogic.sendGift("cheap");
 

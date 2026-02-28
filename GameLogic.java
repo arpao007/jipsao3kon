@@ -202,7 +202,7 @@ public class GameLogic {
     }
     
     public int getGiftQuota() {
-
+        checkGiftQuotaReset();
         return giftQuotaToday;
     }
     
@@ -276,7 +276,7 @@ public class GameLogic {
     }
     
     public int getWorkCountToday() {
-
+        checkWorkReset();
         return workCountToday;
     }
     

@@ -1,5 +1,5 @@
-import javax.swing.*;
 import java.awt.*;
+import javax.swing.*;
 
 public class RunGame {
 
@@ -34,9 +34,24 @@ public class RunGame {
 
             MultiplayerLobby lobbyPanel = new MultiplayerLobby(cardLayout, mainContainer);
 
+            SettingPanel settingPanel = new SettingPanel(cardLayout, mainContainer);
+            settingPanel.setGameFrame(frame);
+            settingPanel.setSettingsListener(new SettingPanel.SettingsListener() {
+                @Override
+                public void onDisplayModeChanged(SettingPanel.DisplayMode mode, JFrame f) {
+                    applyDisplayMode(mode, f);
+                }
+                @Override
+                public void onVolumeChanged(int volume) {
+                    // TODO: connect to AudioManager ในอนาคต
+                    System.out.println("[RunGame] Volume: " + volume + "%");
+                }
+            });
+
             mainContainer.add(menuPanel,             "MENU");
             mainContainer.add(gameplayPlaceholder,   "GAMEPLAY");
             mainContainer.add(lobbyPanel,            "LOBBY");
+            mainContainer.add(settingPanel,          "SETTINGS");
 
             cardLayout.show(mainContainer, "MENU");
 
@@ -92,6 +107,52 @@ public class RunGame {
         panel.add(backBtn);
 
         return panel;
+    }
+
+
+    public static void applyDisplayMode(SettingPanel.DisplayMode mode, JFrame frame) {
+        GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+        Dimension screen  = Toolkit.getDefaultToolkit().getScreenSize();
+
+        // ออกจาก fullscreen ก่อนเสมอ
+        if (gd.getFullScreenWindow() != null) {
+            gd.setFullScreenWindow(null);
+        }
+
+        frame.setVisible(false);
+        frame.dispose();
+
+        switch (mode) {
+            case WINDOWED:
+                frame.setUndecorated(false);
+                frame.setResizable(true);
+                frame.setSize(W, H);
+                frame.setLocationRelativeTo(null);
+                frame.setMaximumSize(screen);
+                break;
+
+            case BORDERLESS:
+                frame.setUndecorated(true);
+                frame.setResizable(true);
+                frame.setSize(W, H);
+                frame.setLocationRelativeTo(null);
+                frame.setMaximumSize(screen);
+                break;
+
+            case FULLSCREEN:
+                frame.setUndecorated(true);
+                frame.setResizable(false);
+                if (gd.isFullScreenSupported()) {
+                    gd.setFullScreenWindow(frame);
+                } else {
+                    frame.setSize(screen);
+                    frame.setLocationRelativeTo(null);
+                }
+                break;
+        }
+
+        frame.setVisible(true);
+        System.out.println("[RunGame] Display mode: " + mode);
     }
 
     private static void setupLookAndFeel() {

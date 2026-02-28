@@ -1,11 +1,10 @@
-import javax.swing.*;
-import javax.swing.event.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import javax.swing.*;
 
 
 public class SettingPanel extends JPanel {
@@ -192,7 +191,6 @@ public class SettingPanel extends JPanel {
             }
         };
         slider.setOpaque(false);
-        slider.setBorderPainted(false);
         slider.setFocusable(false);
         slider.setBounds(50, 294, 600, 50);
         slider.addChangeListener(e -> {

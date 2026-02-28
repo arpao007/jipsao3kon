@@ -234,8 +234,6 @@ public class MainMenu extends JPanel {
         credit.setBounds(0, 755, 1200, 30);
         add(credit);
 
-        // ── Decorative side flowers ──
-        addSideDecor();
     }
 
     // ─────────────────────────────────────────────
@@ -349,49 +347,6 @@ public class MainMenu extends JPanel {
     }
 
     // ─────────────────────────────────────────────
-    // Side decorative panels
-    // ─────────────────────────────────────────────
-    private void addSideDecor() {
-        // Left card
-        JPanel leftCard = makeDecorCard(
-            new String[]{"🌸", "✿", "🌷", "💮", "🌺"},
-            new int[]{20, 45, 70, 95, 120},
-            new int[]{200, 280, 360, 440, 520}
-        );
-        leftCard.setBounds(30, 180, 120, 420);
-        add(leftCard);
-
-        // Right card
-        JPanel rightCard = makeDecorCard(
-            new String[]{"💝", "🌸", "💖", "✿", "💗"},
-            new int[]{20, 45, 70, 45, 20},
-            new int[]{200, 280, 360, 440, 520}
-        );
-        rightCard.setBounds(1050, 180, 120, 420);
-        add(rightCard);
-    }
-
-    private JPanel makeDecorCard(String[] emojis, int[] xOffsets, int[] yOffsets) {
-        JPanel p = new JPanel(null) {
-            @Override protected void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D) g;
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(new Color(255, 240, 248, 120));
-                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 30, 30);
-                g2.setStroke(new BasicStroke(2f));
-                g2.setColor(new Color(0xE8A0C8, false));
-                g2.drawRoundRect(1, 1, getWidth()-2, getHeight()-2, 29, 29);
-            }
-        };
-        p.setOpaque(false);
-        for (int i = 0; i < emojis.length; i++) {
-            JLabel lbl = new JLabel(emojis[i], SwingConstants.CENTER);
-            lbl.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 28));
-            lbl.setBounds(0, 20 + i*72, 120, 50);
-            p.add(lbl);
-        }
-        return p;
-    }
 
     // ─────────────────────────────────────────────
     // Font helper

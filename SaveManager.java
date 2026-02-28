@@ -68,12 +68,6 @@ public class SaveManager {
             int day   = parseInt(p, "day",   1);
             GameDate loaded = new GameDate(year, month, day);
             // copy ค่าเข้า gameDate ที่ส่งมา
-            int abs = loaded.toAbsoluteDay();
-            GameDate tmp = GameDate.fromAbsoluteDay(abs);
-            // ใช้ reflection-free: loop nextDay
-            // reset to day 1 ก่อน แล้ว nextDay ไปยัง abs
-            // วิธีง่ายกว่า: เซ็ตผ่าน constructor แต่ gameDate ไม่มี setter
-            // → เซ็ตผ่าน setDate method ที่เราจะ expose
             gameDate.setDate(year, month, day);
 
             System.out.println("[SaveManager] โหลดเกมสำเร็จ - " + character +

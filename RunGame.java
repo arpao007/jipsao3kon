@@ -133,7 +133,7 @@ public class RunGame {
     private static void setupLookAndFeel() {
         try {
             UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
-        } catch (Exception ignored) {}
+        } catch (ReflectiveOperationException | UnsupportedLookAndFeelException ignored) {}
 
         Font thaiFont = new Font("Tahoma", Font.PLAIN, 15);
         UIManager.put("OptionPane.messageFont",   new Font("Tahoma", Font.PLAIN, 16));

@@ -1,75 +1,46 @@
 import javax.swing.*;
 import java.awt.*;
 
-/**
- * RunGame.java
- * ─────────────────────────────────────────────────────────
- * Entry Point หลักของเกม
- * สร้าง JFrame หลัก + CardLayout + เชื่อมทุกหน้าเข้ากัน
- *
- * หน้าที่ลงทะเบียน:
- *   "MENU"     → MainMenu
- *   "GAMEPLAY" → (placeholder — ต่อ GameUI ของจริงทีหลัง)
- *   "LOBBY"    → MultiplayerLobby
- *
- * คอมไพล์และรัน:
- *   javac *.java
- *   java  RunGame
- * ─────────────────────────────────────────────────────────
- */
 public class RunGame {
 
-    // ── ขนาดหน้าต่าง ──
     public static final int W = 1200;
     public static final int H = 800;
 
     public static void main(String[] args) {
-        // ตั้งค่า font ภาษาไทย + look
         setupLookAndFeel();
 
         SwingUtilities.invokeLater(() -> {
-            // ── สร้าง Frame ──
             JFrame frame = new JFrame("First Love ♡");
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             frame.setSize(W, H);
             frame.setResizable(false);
             frame.setLocationRelativeTo(null);
 
-            // ── Icon (ถ้ามี) ──
             try {
                 ImageIcon icon = new ImageIcon("res/icon.png");
                 frame.setIconImage(icon.getImage());
             } catch (Exception ignored) {}
 
-            // ── CardLayout container ──
             CardLayout cardLayout    = new CardLayout();
             JPanel     mainContainer = new JPanel(cardLayout);
             mainContainer.setPreferredSize(new Dimension(W, H));
 
-            // ── Logic + Date (shared) ──
             GameLogic logic    = new GameLogic();
             GameDate  gameDate = new GameDate();
 
-            // ── MainMenu ──
             MainMenu menuPanel = new MainMenu(cardLayout, mainContainer);
 
-            // ── Gameplay placeholder ──
             JPanel gameplayPlaceholder = buildGameplayPlaceholder(cardLayout, mainContainer, logic, gameDate);
 
-            // ── MultiplayerLobby ──
             MultiplayerLobby lobbyPanel = new MultiplayerLobby(cardLayout, mainContainer);
 
-            // ── Register cards ──
             mainContainer.add(menuPanel,             "MENU");
             mainContainer.add(gameplayPlaceholder,   "GAMEPLAY");
             mainContainer.add(lobbyPanel,            "LOBBY");
 
-            // ── แสดงหน้าแรก ──
             cardLayout.show(mainContainer, "MENU");
 
-            // ── Load save ถ้ามี (optional auto-load) ──
             if (SaveManager.hasSave()) {
-                // ไม่ auto-load — ให้ผู้เล่นเลือกเอง
                 System.out.println("[RunGame] พบไฟล์ save — สามารถ Load ได้จากเมนู");
             }
 
@@ -81,9 +52,6 @@ public class RunGame {
         });
     }
 
-    // ─────────────────────────────────────────────────────
-    // Gameplay placeholder panel (เชื่อม GameUI จริงทีหลัง)
-    // ─────────────────────────────────────────────────────
     private static JPanel buildGameplayPlaceholder(CardLayout cl, JPanel container,
                                                     GameLogic logic, GameDate gameDate) {
         JPanel panel = new JPanel(null) {
@@ -112,7 +80,6 @@ public class RunGame {
         lbl.setBounds(0, 200, W, 300);
         panel.add(lbl);
 
-        // ปุ่มกลับเมนู
         JButton backBtn = new JButton("← กลับเมนู");
         backBtn.setFont(new Font("Tahoma", Font.BOLD, 16));
         backBtn.setBackground(new Color(0xE8759A));
@@ -127,9 +94,6 @@ public class RunGame {
         return panel;
     }
 
-    // ─────────────────────────────────────────────────────
-    // Look & Feel + Thai font
-    // ─────────────────────────────────────────────────────
     private static void setupLookAndFeel() {
         try {
             UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());

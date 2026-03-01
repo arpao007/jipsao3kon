@@ -4,13 +4,7 @@ import java.io.IOException;
 import java.util.List;
 import javax.swing.*;
 
-/**
- * MultiplayerLobby.java
- * UI ครบชุด:
- *   STEP 1 — ใส่ชื่อ
- *   STEP 2 — สร้างห้อง / เข้าร่วม
- *   STEP 3 — ห้องรอ (Lobby)
- */
+
 public class MultiplayerLobby extends JPanel {
 
     private final CardLayout parentLayout;
@@ -272,7 +266,7 @@ public class MultiplayerLobby extends JPanel {
 
         // host connect ตัวเองผ่าน localhost
         client = new LanClient(myName);
-        setupClientListener(true);
+        setupClientListener();
         // รอ server เปิดก่อน 200ms
         Timer t = new Timer(250, e -> client.connect("127.0.0.1", LanServer.TCP_PORT));
         t.setRepeats(false);
@@ -288,14 +282,14 @@ public class MultiplayerLobby extends JPanel {
         discovery.stop();
 
         client = new LanClient(myName);
-        setupClientListener(false);
+        setupClientListener();
         client.connect(room.ip, room.port);
 
         roomCodeLabel.setText(room.roomCode);
         innerLayout.show(innerContainer, "LOBBY");
     }
 
-    private void setupClientListener(boolean isHost) {
+    private void setupClientListener() {
         client.setListener(new LanClient.ClientListener() {
             @Override public void onConnected(String roomCode) {
                 roomCodeLabel.setText(roomCode);

@@ -121,7 +121,7 @@ public class SettingPanel extends JPanel {
     private void buildUI() {
 
         // Title
-        JLabel titleLbl = new JLabel("⚙  Settings", SwingConstants.CENTER);
+        JLabel titleLbl = new JLabel("Settings", SwingConstants.CENTER);
         titleLbl.setFont(new Font("Tahoma", Font.BOLD, 42));
         titleLbl.setForeground(PINK_DEEP);
         titleLbl.setBounds(0, 35, 1200, 60);
@@ -145,7 +145,7 @@ public class SettingPanel extends JPanel {
         card.setBounds(220, 100, 760, 650);
         add(card);
 
-        addSectionTitle(card, "🖥   Display Mode", 40, 28);
+        addSectionTitle(card, "◆  Display Mode", 40, 28);
         addSepLine(card, 40, 64, 620);
 
         boolean[][] selState = {
@@ -179,7 +179,7 @@ public class SettingPanel extends JPanel {
             card.add(toggles[i]);
         }
 
-        addSectionTitle(card, "🔊   Sound Volume", 40, 195);
+        addSectionTitle(card, "◆  Sound Volume", 40, 195);
         addSepLine(card, 40, 231, 620);
 
         JLabel volNum = new JLabel(soundVolume+"%", SwingConstants.CENTER);
@@ -223,11 +223,11 @@ public class SettingPanel extends JPanel {
         JLabel l100=new JLabel("100%"); l100.setFont(new Font("Tahoma",Font.PLAIN,12));
         l100.setForeground(new Color(0xB090C0)); l100.setBounds(617,346,38,18); card.add(l100);
 
-        card.add(makeSmallBtn("🔇  Mute", ()->{slider.setValue(0);}, 50, 374, 120, 38));
-        card.add(makeSmallBtn("🔊  Max",  ()->{slider.setValue(100);}, 530, 374, 120, 38));
+        card.add(makeSmallBtn("Mute", ()->{slider.setValue(0);}, 50, 374, 120, 38));
+        card.add(makeSmallBtn("Max",  ()->{slider.setValue(100);}, 530, 374, 120, 38));
 
         // ── Resolution section ──
-        addSectionTitle(card, "📐   Window Size", 40, 400);
+        addSectionTitle(card, "◆  Window Size", 40, 400);
         addSepLine(card, 40, 436, 680);
 
         JLabel resDesc = new JLabel(currentResolution.label + "  (เฉพาะ Windowed / Borderless)", SwingConstants.CENTER);

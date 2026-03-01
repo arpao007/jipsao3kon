@@ -51,6 +51,14 @@ public class MainMenu extends JPanel {
                 rebuildUI();
             }
         });
+
+        // catch เมื่อถูก add เข้า container (ได้ขนาดจริงครั้งแรก)
+        addHierarchyListener(e -> {
+            if ((e.getChangeFlags() & java.awt.event.HierarchyEvent.SHOWING_CHANGED) != 0
+                    && isShowing()) {
+                rebuildUI();
+            }
+        });
     }
 
     // ──────────────────────────────────────────────
@@ -59,8 +67,11 @@ public class MainMenu extends JPanel {
     private void rebuildUI() {
         int w = getWidth();
         int h = getHeight();
-        if (w <= 0 || h <= 0) return;
-
+        // ถ้ายังไม่มีขนาด รอ invokeLater รอบถัดไป
+        if (w <= 0 || h <= 0) {
+            javax.swing.SwingUtilities.invokeLater(this::rebuildUI);
+            return;
+        }
         rl = new RL(w, h);
         removeAll();
         buildUI();
@@ -212,11 +223,11 @@ public class MainMenu extends JPanel {
         int btnStartY = cardY + cardH + rl.gap * 2;
         int btnX = rl.cx(rl.btnW);
 
-        add(makeMenuButton("🌸  New Game",    PINK_DEEP,   PINK_LIGHT,             btnX, btnStartY,                    rl.btnW, rl.btnH, rl.btnFont, () -> onNewGame()));
-        add(makeMenuButton("💾  Load Save",   LILAC_DARK,  LILAC,                  btnX, btnStartY + rl.btnGap,        rl.btnW, rl.btnH, rl.btnFont, () -> onLoadSave()));
-        add(makeMenuButton("🌐  Multiplayer", new Color(0x5B9AD5), BLUE_SOFT,      btnX, btnStartY + rl.btnGap * 2,    rl.btnW, rl.btnH, rl.btnFont, () -> onMultiplayer()));
-        add(makeMenuButton("⚙   Settings",   new Color(0x7080B0), new Color(0xB0C4DE), btnX, btnStartY + rl.btnGap * 3, rl.btnW, rl.btnH, rl.btnFont, () -> onSettings()));
-        add(makeMenuButton("🚪  Exit",        new Color(0xB06090), new Color(0xE0A8C8), btnX, btnStartY + rl.btnGap * 4, rl.btnW, rl.btnH, rl.btnFont, () -> onExit()));
+        add(makeMenuButton("✦  New Game",    PINK_DEEP,   PINK_LIGHT,             btnX, btnStartY,                    rl.btnW, rl.btnH, rl.btnFont, () -> onNewGame()));
+        add(makeMenuButton("✦  Load Save",   LILAC_DARK,  LILAC,                  btnX, btnStartY + rl.btnGap,        rl.btnW, rl.btnH, rl.btnFont, () -> onLoadSave()));
+        add(makeMenuButton("✦  Multiplayer", new Color(0x5B9AD5), BLUE_SOFT,      btnX, btnStartY + rl.btnGap * 2,    rl.btnW, rl.btnH, rl.btnFont, () -> onMultiplayer()));
+        add(makeMenuButton("✦  Settings",   new Color(0x7080B0), new Color(0xB0C4DE), btnX, btnStartY + rl.btnGap * 3, rl.btnW, rl.btnH, rl.btnFont, () -> onSettings()));
+        add(makeMenuButton("✦  Exit",        new Color(0xB06090), new Color(0xE0A8C8), btnX, btnStartY + rl.btnGap * 4, rl.btnW, rl.btnH, rl.btnFont, () -> onExit()));
 
         // credit
         JLabel credit = new JLabel("♡  First Love Game  •  v1.0  ♡", SwingConstants.CENTER);
@@ -310,7 +321,7 @@ public class MainMenu extends JPanel {
         int opt = JOptionPane.showConfirmDialog(getDialogParent(),
             "<html><div style='font-family:Tahoma;font-size:15px;text-align:center'>" +
             "🌸 เริ่มเกมใหม่?<br><br><span style='color:#888'>ข้อมูลปัจจุบันจะไม่หาย<br>ถ้ายังไม่ได้ save</span></div></html>",
-            "New Game", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+            "✦  New Game", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
         if (opt == JOptionPane.YES_OPTION) cardLayout.show(mainContainer, "GAMEPLAY");
     }
 
@@ -319,7 +330,7 @@ public class MainMenu extends JPanel {
             JOptionPane.showMessageDialog(getDialogParent(),
                 "<html><div style='font-family:Tahoma;font-size:15px;text-align:center'>" +
                 "💾 ยังไม่มีไฟล์ save<br><br><span style='color:#888'>เล่น New Game ก่อนนะคะ ♡</span></div></html>",
-                "Load Save", JOptionPane.INFORMATION_MESSAGE);
+                "✦  Load Save", JOptionPane.INFORMATION_MESSAGE);
             return;
         }
         cardLayout.show(mainContainer, "GAMEPLAY");

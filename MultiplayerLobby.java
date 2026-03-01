@@ -4,7 +4,13 @@ import java.io.IOException;
 import java.util.List;
 import javax.swing.*;
 
-
+/**
+ * MultiplayerLobby.java
+ * UI ครบชุด:
+ *   STEP 1 — ใส่ชื่อ
+ *   STEP 2 — สร้างห้อง / เข้าร่วม
+ *   STEP 3 — ห้องรอ (Lobby)
+ */
 public class MultiplayerLobby extends JPanel {
 
     private final CardLayout parentLayout;

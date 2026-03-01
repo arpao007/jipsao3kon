@@ -66,7 +66,6 @@ public class SaveManager {
             int year  = parseInt(p, "year",  1);
             int month = parseInt(p, "month", 1);
             int day   = parseInt(p, "day",   1);
-            GameDate loaded = new GameDate(year, month, day);
             // copy ค่าเข้า gameDate ที่ส่งมา
             gameDate.setDate(year, month, day);
 

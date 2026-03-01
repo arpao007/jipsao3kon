@@ -272,7 +272,7 @@ public class MultiplayerLobby extends JPanel {
 
         // host connect ตัวเองผ่าน localhost
         client = new LanClient(myName);
-        setupClientListener(true);
+        setupClientListener();
         // รอ server เปิดก่อน 200ms
         Timer t = new Timer(250, e -> client.connect("127.0.0.1", LanServer.TCP_PORT));
         t.setRepeats(false);
@@ -288,14 +288,14 @@ public class MultiplayerLobby extends JPanel {
         discovery.stop();
 
         client = new LanClient(myName);
-        setupClientListener(false);
+        setupClientListener();
         client.connect(room.ip, room.port);
 
         roomCodeLabel.setText(room.roomCode);
         innerLayout.show(innerContainer, "LOBBY");
     }
 
-    private void setupClientListener(boolean isHost) {
+    private void setupClientListener() {
         client.setListener(new LanClient.ClientListener() {
             @Override public void onConnected(String roomCode) {
                 roomCodeLabel.setText(roomCode);

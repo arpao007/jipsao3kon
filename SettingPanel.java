@@ -20,6 +20,22 @@ public class SettingPanel extends JPanel {
     public enum DisplayMode { WINDOWED, BORDERLESS, FULLSCREEN }
     private DisplayMode currentMode = DisplayMode.WINDOWED;
 
+    public enum Resolution {
+        R_1280x720  ("1280 × 720",   1280, 720),
+        R_1366x768  ("1366 × 768",   1366, 768),
+        R_1440x900  ("1440 × 900",   1440, 900),
+        R_1600x900  ("1600 × 900",   1600, 900),
+        R_1920x1080 ("1920 × 1080",  1920, 1080),
+        R_2560x1440 ("2560 × 1440",  2560, 1440),
+        R_2560x1600 ("2560 × 1600",  2560, 1600);
+
+        public final String label;
+        public final int w, h;
+        Resolution(String label, int w, int h) { this.label = label; this.w = w; this.h = h; }
+        @Override public String toString() { return label; }
+    }
+    private Resolution currentResolution = Resolution.R_1920x1080;
+
     private int soundVolume = 70;
 
     private final CardLayout cardLayout;
@@ -28,6 +44,7 @@ public class SettingPanel extends JPanel {
 
     public interface SettingsListener {
         void onDisplayModeChanged(DisplayMode mode, JFrame frame);
+        void onResolutionChanged(Resolution res, JFrame frame);
         void onVolumeChanged(int volume);
     }
     private SettingsListener settingsListener;
@@ -49,6 +66,7 @@ public class SettingPanel extends JPanel {
     public void setGameFrame(JFrame frame) { this.gameFrame = frame; }
     public void setSettingsListener(SettingsListener l) { this.settingsListener = l; }
     public DisplayMode getCurrentMode() { return currentMode; }
+    public Resolution getCurrentResolution() { return currentResolution; }
     public int getSoundVolume() { return soundVolume; }
 
     private static class Petal {
@@ -124,7 +142,7 @@ public class SettingPanel extends JPanel {
             }
         };
         card.setOpaque(false);
-        card.setBounds(250, 110, 700, 560);
+        card.setBounds(220, 100, 760, 650);
         add(card);
 
         addSectionTitle(card, "🖥   Display Mode", 40, 28);
@@ -208,7 +226,55 @@ public class SettingPanel extends JPanel {
         card.add(makeSmallBtn("🔇  Mute", ()->{slider.setValue(0);}, 50, 374, 120, 38));
         card.add(makeSmallBtn("🔊  Max",  ()->{slider.setValue(100);}, 530, 374, 120, 38));
 
-        JPanel back = makeMenuBtn("← กลับเมนู", LILAC_DARK, LILAC, 200, 460, 300, 52, ()->{
+        // ── Resolution section ──
+        addSectionTitle(card, "📐   Window Size", 40, 400);
+        addSepLine(card, 40, 436, 680);
+
+        JLabel resDesc = new JLabel(currentResolution.label + "  (เฉพาะ Windowed / Borderless)", SwingConstants.CENTER);
+        resDesc.setFont(new Font("Tahoma", Font.ITALIC, 13));
+        resDesc.setForeground(new Color(0x9060A0));
+        resDesc.setBounds(30, 446, 700, 22);
+        card.add(resDesc);
+
+        Resolution[] resList = Resolution.values();
+        int rbw = 148, rbh = 40, rbgap = 10;
+        int totalRW = rbw * 4 + rbgap * 3;
+        int rbx = (760 - totalRW) / 2;
+        JPanel[] rToggles = new JPanel[resList.length];
+        boolean[][] rSel = new boolean[resList.length][1];
+        for (int i = 0; i < resList.length; i++) rSel[i][0] = (resList[i] == currentResolution);
+
+        // row 1 (4 ตัว)
+        for (int i = 0; i < 4 && i < resList.length; i++) {
+            final int idx = i;
+            rToggles[i] = makeToggle(resList[i].label, rSel[i], () -> {
+                currentResolution = resList[idx];
+                for (int j = 0; j < resList.length; j++) rSel[j][0] = (j == idx);
+                for (JPanel t : rToggles) if (t != null) t.repaint();
+                resDesc.setText(currentResolution.label + "  (เฉพาะ Windowed / Borderless)");
+                if (settingsListener != null && gameFrame != null)
+                    settingsListener.onResolutionChanged(currentResolution, gameFrame);
+            });
+            rToggles[i].setBounds(rbx + i * (rbw + rbgap), 474, rbw, rbh);
+            card.add(rToggles[i]);
+        }
+        // row 2 (ที่เหลือ)
+        int row2x = rbx + (rbw + rbgap); // center เหลือ 3 ตัว
+        for (int i = 4; i < resList.length; i++) {
+            final int idx = i;
+            rToggles[i] = makeToggle(resList[i].label, rSel[i], () -> {
+                currentResolution = resList[idx];
+                for (int j = 0; j < resList.length; j++) rSel[j][0] = (j == idx);
+                for (JPanel t : rToggles) if (t != null) t.repaint();
+                resDesc.setText(currentResolution.label + "  (เฉพาะ Windowed / Borderless)");
+                if (settingsListener != null && gameFrame != null)
+                    settingsListener.onResolutionChanged(currentResolution, gameFrame);
+            });
+            rToggles[i].setBounds(row2x + (i - 4) * (rbw + rbgap), 524, rbw, rbh);
+            card.add(rToggles[i]);
+        }
+
+        JPanel back = makeMenuBtn("← กลับเมนู", LILAC_DARK, LILAC, 230, 580, 300, 52, ()->{
             cardLayout.show(mainContainer,"MENU");
         });
         card.add(back);

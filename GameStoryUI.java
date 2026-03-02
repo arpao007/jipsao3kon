@@ -20,7 +20,6 @@ public class GameStoryUI extends JPanel {
     private static final Color TEXT_DARK   = new Color(0x4A2060);
     private static final Color TEXT_WHITE  = new Color(0xFFF5FA);
     private static final Color BAD_C       = new Color(0xAAAAAA);
-    // กรอบ choice สีเดียวกันทุกปุ่ม
     private static final Color CHOICE_BORDER = new Color(0xE8759A);
 
     // ── State ──
@@ -59,8 +58,8 @@ public class GameStoryUI extends JPanel {
     private JLabel  deltaLbl;
     private JButton continueBtn;
     private JPanel  endingPanel;
-    private JPanel  hamburgerBtn;  // ปุ่ม 3 ขีด
-    private JPanel  menuOverlay;   // backdrop + popup
+    private JPanel  hamburgerBtn;
+    private JPanel  menuOverlay;
     private boolean menuOpen = false;
 
     private RL rl;
@@ -119,11 +118,9 @@ public class GameStoryUI extends JPanel {
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g2.setPaint(new GradientPaint(0, 0, BG_TOP, 0, ph, BG_BOT));
         g2.fillRect(0, 0, pw, ph);
-        // bokeh บน 60%
         g2.setPaint(new RadialGradientPaint(pw/2f, ph*0.3f, ph/4f,
             new float[]{0,1}, new Color[]{new Color(255,200,230,30), new Color(255,200,230,0)}));
         g2.fillOval(pw/4, 0, pw/2, (int)(ph*0.6));
-        // เส้นแบ่ง 60/40 บางๆ
         int divY = (int)(ph * 0.60);
         g2.setStroke(new BasicStroke(1f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND,
             0, new float[]{10, 7}, 0));
@@ -138,11 +135,13 @@ public class GameStoryUI extends JPanel {
         int w = rl.w, h = rl.h;
         int pad = Math.max(8, w / 90);
 
-        int topArea = (int)(h * 0.60);   // เริ่มต้น UI ล่างที่ 60%
-        int botH    = h - topArea;        // ความสูงรวม 40%
+        int topArea = (int)(h * 0.60);
+        int botH    = h - topArea;
 
-        // ── Info bar: location + affection (~10% ของ botH) ──
-        int barH = Math.max(30, (int)(botH * 0.10));
+        // ── Info bar ──
+        int barH   = Math.max(30, (int)(botH * 0.10));
+        int hbSize = barH - 6;  // ประกาศก่อน ใช้คำนวณตำแหน่ง affection bar ด้วย
+
         infoBar = new JPanel(null) {
             @Override protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D)g;
@@ -164,10 +163,12 @@ public class GameStoryUI extends JPanel {
         locationLbl.setBounds(12, 0, (int)((w-pad*2)*0.48), barH);
         infoBar.add(locationLbl);
 
+        // affection bar เว้นระยะจาก hamburger (hbSize + 16px)
         int abarW = (int)((w-pad*2) * 0.44);
-        buildAffectionBar(infoBar, (w-pad*2) - abarW - 8, 0, abarW, barH);
+        int abarX = (w-pad*2) - abarW - hbSize - 16;
+        buildAffectionBar(infoBar, abarX, 0, abarW, barH);
 
-        // ── Story box (~32% ของ botH) ──
+        // ── Story box ──
         int storyY = topArea + pad + barH + 4;
         int storyH = (int)(botH * 0.32);
         int uiW    = w - pad*2;
@@ -210,10 +211,9 @@ public class GameStoryUI extends JPanel {
         choicePanel.setBounds(pad, choiceY, uiW, choiceH);
         add(choicePanel);
 
-        // ── Reaction box — ครอบคลุม choiceH เต็มๆ ──
-        // continueBtn อยู่ข้างในที่ย่อหน้าจากขอบล่าง 10px
+        // ── Reaction box ──
         int contBtnH = Math.max(30, (int)(choiceH * 0.22));
-        int contBtnY = choiceH - contBtnH - 8;   // relative ภายใน reactionBox
+        int contBtnY = choiceH - contBtnH - 8;
 
         reactionBox = new JPanel(null) {
             @Override protected void paintComponent(Graphics g) {
@@ -227,7 +227,7 @@ public class GameStoryUI extends JPanel {
             }
         };
         reactionBox.setOpaque(false);
-        reactionBox.setBounds(pad, choiceY, uiW, choiceH);   // เต็ม choiceH
+        reactionBox.setBounds(pad, choiceY, uiW, choiceH);
         add(reactionBox);
 
         reactionText2 = new JLabel();
@@ -242,7 +242,6 @@ public class GameStoryUI extends JPanel {
         deltaLbl.setBounds(uiW - 110, 6, 96, 24);
         reactionBox.add(deltaLbl);
 
-        // continueBtn อยู่ใต้สุดของ reactionBox
         continueBtn = makeRoundBtn("ดำเนินต่อ ▶", LILAC_DARK, LILAC,
             uiW/2 - 85, contBtnY, 170, contBtnH);
         continueBtn.addActionListener(e -> onContinueClick());
@@ -264,8 +263,7 @@ public class GameStoryUI extends JPanel {
         endingPanel.setBounds(pad, storyY, uiW, h - storyY - pad);
         add(endingPanel);
 
-        // ── Hamburger button — มุมขวาบนของ infoBar ──
-        int hbSize = barH - 6;
+        // ── Hamburger button — ขวาสุดของ infoBar ──
         hamburgerBtn = new JPanel(null) {
             boolean hov = false;
             { setOpaque(false); setCursor(new Cursor(Cursor.HAND_CURSOR));
@@ -278,12 +276,10 @@ public class GameStoryUI extends JPanel {
             @Override protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D)g;
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                // circle bg on hover
                 if (hov) {
                     g2.setColor(new Color(0xE8759A, false));
                     g2.fillOval(0, 0, getWidth(), getHeight());
                 }
-                // 3 ขีด
                 g2.setStroke(new BasicStroke(2.2f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
                 g2.setColor(hov ? PINK_DEEP : new Color(0xA076BB));
                 int lw = (int)(getWidth() * 0.58);
@@ -292,14 +288,12 @@ public class GameStoryUI extends JPanel {
                 for (int ly1 : ly) g2.drawLine(lx, ly1, lx+lw, ly1);
             }
         };
-        // วางไว้ใน infoBar ด้านขวาสุด (ก่อน affection bar จะเริ่ม)
         hamburgerBtn.setBounds((w - pad*2) - hbSize - 4, (barH - hbSize)/2, hbSize, hbSize);
         infoBar.add(hamburgerBtn);
 
-        // ── Menu overlay (เต็มจอ, แสดงเมื่อ menuOpen) ──
+        // ── Menu overlay ──
         menuOverlay = new JPanel(null) {
             @Override protected void paintComponent(Graphics g) {
-                // backdrop ดำ 50% ทับทั้งจอ
                 Graphics2D g2 = (Graphics2D)g;
                 g2.setColor(new Color(0, 0, 0, 130));
                 g2.fillRect(0, 0, getWidth(), getHeight());
@@ -308,17 +302,15 @@ public class GameStoryUI extends JPanel {
         menuOverlay.setOpaque(false);
         menuOverlay.setBounds(0, 0, w, h);
         menuOverlay.setVisible(false);
-        // กดพื้นหลังเพื่อปิด
         menuOverlay.addMouseListener(new MouseAdapter() {
             @Override public void mouseReleased(MouseEvent e) {
-                // ปิดเฉพาะถ้าคลิกนอก popup
                 Component hit = menuOverlay.getComponentAt(e.getPoint());
                 if (hit == menuOverlay) closeMenu();
             }
         });
         buildMenuPopup(menuOverlay, w, h);
         add(menuOverlay);
-        setComponentZOrder(menuOverlay, 0);  // อยู่บนสุด
+        setComponentZOrder(menuOverlay, 0);
     }
 
     // ──────────────────────────────────────────────
@@ -364,7 +356,6 @@ public class GameStoryUI extends JPanel {
         storyBox.setVisible(isStory || isChoices);
         nextBtn.setVisible(isStory);
 
-        // ล้าง choicePanel ทุกครั้งที่ไม่ใช่ CHOICES ป้องกันปุ่มเก่าค้างและกดซ้ำ
         if (!isChoices) {
             choicePanel.removeAll();
             choicePanel.revalidate();
@@ -372,7 +363,6 @@ public class GameStoryUI extends JPanel {
         }
         choicePanel.setVisible(isChoices);
 
-        // reactionBox ต้องอยู่บนสุด — raise to front
         reactionBox.setVisible(isReaction);
         if (isReaction) setComponentZOrder(reactionBox, 0);
 
@@ -396,7 +386,6 @@ public class GameStoryUI extends JPanel {
         if (isReaction) buildReactionView();
         if (isEnding)   buildEndingView();
         if (affectionBar != null) affectionBar.repaint();
-        // ปิด menu overlay ทุกครั้งที่ state เปลี่ยน
         if (menuOverlay != null && menuOpen) closeMenu();
     }
 
@@ -418,7 +407,6 @@ public class GameStoryUI extends JPanel {
 
     // ══════════════════════════════════════════════
     //  Choice buttons — 2×2 grid
-    //  กรอบสีเดียวกัน ไม่มี type label
     // ══════════════════════════════════════════════
     private void buildChoiceButtons(StoryData.Chapter ch) {
         choicePanel.removeAll();
@@ -454,21 +442,17 @@ public class GameStoryUI extends JPanel {
                 @Override protected void paintComponent(Graphics g) {
                     Graphics2D g2 = (Graphics2D)g;
                     g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                    // พื้นหลัง
                     g2.setColor(hov ? new Color(0xF9D0E4) : new Color(255, 245, 252, 228));
                     g2.fillRoundRect(0, 0, getWidth(), getHeight(), 16, 16);
-                    // กรอบสีเดียวกันทุกปุ่ม
                     g2.setStroke(new BasicStroke(2f));
                     g2.setColor(hov ? PINK_DEEP : CHOICE_BORDER);
                     g2.drawRoundRect(1, 1, getWidth()-2, getHeight()-2, 15, 15);
-                    // ข้อความ (ไม่มี prefix [Romantic]/[Good] ฯลฯ)
                     g2.setFont(new Font("Tahoma", Font.PLAIN, rl!=null?rl.fontBody:13));
                     g2.setColor(TEXT_DARK);
                     String ct = choice.text
                         .replace("{player}", playerName)
                         .replace("{girl}", GIRL_NAME);
                     FontMetrics fm = g2.getFontMetrics();
-                    // word-wrap ภาษาไทย (pixel-based)
                     java.util.List<String> lines = wrapText(ct, fm, getWidth()-20);
                     int totalH = lines.size() * fm.getHeight();
                     int ty = (getHeight() - totalH) / 2 + fm.getAscent();
@@ -486,7 +470,6 @@ public class GameStoryUI extends JPanel {
         choicePanel.repaint();
     }
 
-    /** wrap ข้อความภาษาไทย (pixel-based ไม่ใช้ space) */
     private java.util.List<String> wrapText(String text, FontMetrics fm, int maxW) {
         java.util.List<String> lines = new java.util.ArrayList<>();
         if (text == null || text.isEmpty()) return lines;
@@ -504,15 +487,12 @@ public class GameStoryUI extends JPanel {
         return lines;
     }
 
-    // flag ป้องกันกดซ้ำ
     private boolean choiceProcessing = false;
 
-    // ──────────────────────────────────────────────
     private void onChoiceSelected(StoryData.Chapter ch, int idx) {
-        if (choiceProcessing) return;   // กัน double-click
+        if (choiceProcessing) return;
         choiceProcessing = true;
 
-        // ซ่อน choicePanel ทันที ป้องกันกดซ้ำ
         if (choicePanel != null) {
             choicePanel.setVisible(false);
             choicePanel.removeAll();
@@ -538,7 +518,6 @@ public class GameStoryUI extends JPanel {
                 .replace("{player}", playerName).replace("{girl}", GIRL_NAME);
             uiState = UIState.REACTION;
             showCurrentState();
-            // reset flag หลัง UI เปลี่ยนแล้ว
             choiceProcessing = false;
         }
     }
@@ -605,7 +584,6 @@ public class GameStoryUI extends JPanel {
         endingPanel.repaint();
     }
 
-    // ──────────────────────────────────────────────
     private void onNextClick() {
         if (charIndex < targetText.length()) {
             if (typeTimer != null) typeTimer.stop();
@@ -621,12 +599,10 @@ public class GameStoryUI extends JPanel {
     private void onContinueClick() { advanceChapter(); }
 
     private void advanceChapter() {
-        // reset state บทใหม่
         choiceProcessing = false;
         charIndex = 0;
         targetText = "";
         if (typeTimer != null) { typeTimer.stop(); typeTimer = null; }
-
         currentChapter++;
         uiState = (currentChapter >= chapters.size()) ? UIState.ENDING : UIState.STORY;
         showCurrentState();
@@ -657,7 +633,6 @@ public class GameStoryUI extends JPanel {
     }
 
     private void buildMenuPopup(JPanel overlay, int pw, int ph) {
-        // popup card — อยู่มุมขวา ใต้ infoBar
         int topArea = (int)(ph * 0.60);
         int pad     = Math.max(8, pw / 90);
         int barH    = Math.max(30, (int)((ph - topArea) * 0.10));
@@ -671,10 +646,8 @@ public class GameStoryUI extends JPanel {
             @Override protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D)g;
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                // shadow
                 g2.setColor(new Color(0,0,0,40));
                 g2.fillRoundRect(4, 6, getWidth(), getHeight(), 22, 22);
-                // card
                 g2.setColor(new Color(255, 245, 252, 248));
                 g2.fillRoundRect(0, 0, getWidth()-4, getHeight()-6, 22, 22);
                 g2.setStroke(new BasicStroke(2f));
@@ -686,7 +659,6 @@ public class GameStoryUI extends JPanel {
         popup.setBounds(popX, popY, popW, popH);
         overlay.add(popup);
 
-        // รายการเมนู
         String[] labels  = { "🏠  กลับบ้าน", "💼  ทำงาน", "🛒  ร้านค้า", "🚪  ออกเกม" };
         Color[]  colors  = {
             new Color(0xA076BB), new Color(0x5B9AD5),
@@ -720,7 +692,6 @@ public class GameStoryUI extends JPanel {
                         g2.setColor(new Color(fc.getRed(), fc.getGreen(), fc.getBlue(), 28));
                         g2.fillRoundRect(4, 2, getWidth()-8, getHeight()-4, 14, 14);
                     }
-                    // divider (ยกเว้นอันแรก)
                     if (fi > 0) {
                         g2.setColor(new Color(0xE8759A, false));
                         g2.setStroke(new BasicStroke(0.8f));

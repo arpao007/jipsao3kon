@@ -666,10 +666,35 @@ public class GameStoryUI extends JPanel {
         };
         Runnable[] actions = {
             () -> { closeMenu(); /* TODO: ไปหน้ากลับบ้าน */ },
-            () -> { closeMenu(); /* TODO: ไปหน้าทำงาน  */ },
-            () -> { closeMenu(); /* TODO: ไปหน้าร้านค้า */ },
-            () -> { closeMenu(); cardLayout.show(mainContainer, "MENU"); }
-        };
+    // 💼 ทำงาน (เปิดเป็น Dialog)
+        () -> {
+        closeMenu();
+        Window w = SwingUtilities.getWindowAncestor(this);
+        if (w instanceof JFrame) {
+            WorkPanel.showAsDialog((JFrame) w, logic);
+        } else {
+            JOptionPane.showMessageDialog(this, "ไม่พบหน้าต่างหลัก (JFrame)");
+        }
+        },
+
+    // 🛒 ร้านค้า (เปิดเป็น Dialog)
+        () -> {
+        closeMenu();
+        Window w = SwingUtilities.getWindowAncestor(this);
+        if (w instanceof JFrame) {
+            ShopPanel.showAsDialog((JFrame) w, logic);
+        } else {
+            JOptionPane.showMessageDialog(this, "ไม่พบหน้าต่างหลัก (JFrame)");
+        }
+        },
+
+    // 🚪 ออกเกม (ออกจริง ๆ)
+        () -> {
+        closeMenu();
+            int r = JOptionPane.showConfirmDialog(this, "ออกจากเกมใช่ไหม?", "ยืนยัน", JOptionPane.YES_NO_OPTION);
+            if (r == JOptionPane.YES_OPTION) System.exit(0);
+        }
+    };
 
         for (int i = 0; i < labels.length; i++) {
             final int fi = i;

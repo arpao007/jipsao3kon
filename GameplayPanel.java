@@ -14,7 +14,10 @@ public class GameplayPanel extends JPanel {
     private LocalDate gameDate = LocalDate.now();
     private JWindow hamburgerPopup;
 
-    // ===== simple UI =====
+    
+    // ใช้ปิดเมนูเมื่อคลิกนอก popup (กัน memory leak)
+    private transient AWTEventListener hamburgerOutsideListener;
+// ===== simple UI =====
     private final JTextArea logArea = new JTextArea();
 
     public GameplayPanel(CardLayout cardLayout, JPanel mainContainer, GameLogic logic) {
@@ -83,72 +86,54 @@ public class GameplayPanel extends JPanel {
         showHamburgerMenu(anchor);
     }
 
-    private void showHamburgerMenu(JButton anchor) {
-        Window owner = SwingUtilities.getWindowAncestor(this);
-        hamburgerPopup = new JWindow(owner);
+    private void showHamburgerMenu(JComponent anchor) {
+    // ถ้ามี popup ค้างอยู่ ให้ปิดก่อน (กันซ้อน)
+    closeHamburgerMenu();
 
-        JPanel panel = new JPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.setBackground(Color.WHITE);
-        panel.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(0xFFB0CC), 1, true),
-                BorderFactory.createEmptyBorder(6, 0, 6, 0)
-        ));
+    Window owner = SwingUtilities.getWindowAncestor(this);
+    hamburgerPopup = new JWindow(owner);
+    hamburgerPopup.setAlwaysOnTop(true);
+    hamburgerPopup.setBackground(new Color(0, 0, 0, 0));
 
-        panel.add(makeHamburgerItem("🛍️  ร้านค้า", new Color(0xE91E8C), () -> {
-            closeHamburgerMenu();
-            openShopDialog(owner);
-        }));
-        panel.add(makeMenuDivider());
+    JPanel panel = buildHamburgerPanel();
+    hamburgerPopup.setContentPane(panel);
+    hamburgerPopup.pack();
 
-        panel.add(makeHamburgerItem("💼  ทำงาน", new Color(0x1565C0), () -> {
-            closeHamburgerMenu();
-            openWorkDialog(owner);
-        }));
-        panel.add(makeMenuDivider());
+    // วางตำแหน่งใต้ปุ่ม hamburger (ขวาชิด)
+    Point loc = anchor.getLocationOnScreen();
+    hamburgerPopup.setLocation(
+            loc.x + anchor.getWidth() - hamburgerPopup.getWidth(),
+            loc.y + anchor.getHeight() + 4
+    );
 
-        panel.add(makeHamburgerItem("💾  บันทึกเกม", new Color(0x2E7D32), () -> {
-            closeHamburgerMenu();
-            SaveManager.save(logic, gameDate);
-            addLog("💾 บันทึกเกมสำเร็จ!");
-            JOptionPane.showMessageDialog(this, "บันทึกสำเร็จ ♡", "บันทึก", JOptionPane.INFORMATION_MESSAGE);
-        }));
-        panel.add(makeMenuDivider());
+    hamburgerPopup.setVisible(true);
 
-        panel.add(makeHamburgerItem("🚪  กลับเมนู", new Color(0x888888), () -> {
-            closeHamburgerMenu();
-            int r = JOptionPane.showConfirmDialog(this,
-                    "กลับเมนูหลัก? (ข้อมูลที่ยังไม่ได้บันทึกจะหายไป)",
-                    "ยืนยัน", JOptionPane.YES_NO_OPTION);
-            if (r == JOptionPane.YES_OPTION) cardLayout.show(mainContainer, "MENU");
-        }));
+    // คลิกนอก popup → ปิด (เก็บ reference เพื่อ remove ได้)
+    hamburgerOutsideListener = new AWTEventListener() {
+        @Override public void eventDispatched(AWTEvent evt) {
+            if (!(evt instanceof MouseEvent)) return;
+            MouseEvent me = (MouseEvent) evt;
+            if (me.getID() != MouseEvent.MOUSE_PRESSED) return;
 
-        hamburgerPopup.setContentPane(panel);
-        hamburgerPopup.pack();
+            if (hamburgerPopup == null || !hamburgerPopup.isVisible()) return;
 
-        Point loc = anchor.getLocationOnScreen();
-        hamburgerPopup.setLocation(
-                loc.x + anchor.getWidth() - hamburgerPopup.getWidth(),
-                loc.y + anchor.getHeight() + 4
-        );
-        hamburgerPopup.setVisible(true);
-
-        // คลิกนอก popup → ปิด (ใช้ listener ครั้งเดียวต่อ popup)
-        Toolkit.getDefaultToolkit().addAWTEventListener(new AWTEventListener() {
-            @Override public void eventDispatched(AWTEvent evt) {
-                if (!(evt instanceof MouseEvent)) return;
-                MouseEvent me = (MouseEvent) evt;
-                if (me.getID() != MouseEvent.MOUSE_PRESSED) return;
-
-                if (hamburgerPopup != null
-                        && hamburgerPopup.isVisible()
-                        && !hamburgerPopup.getBounds().contains(me.getLocationOnScreen())) {
-                    closeHamburgerMenu();
-                    Toolkit.getDefaultToolkit().removeAWTEventListener(this);
-                }
+            Point p;
+            try {
+                p = me.getLocationOnScreen();
+            } catch (IllegalComponentStateException ex) {
+                return;
             }
-        }, AWTEvent.MOUSE_EVENT_MASK);
-    }
+
+            Rectangle r = hamburgerPopup.getBounds(); // screen coords
+            if (!r.contains(p)) {
+                closeHamburgerMenu();
+            }
+        }
+    };
+    Toolkit.getDefaultToolkit().addAWTEventListener(hamburgerOutsideListener, AWTEvent.MOUSE_EVENT_MASK);
+}
+
+
 
     private JButton makeHamburgerItem(String text, Color color, Runnable action) {
         JButton btn = new JButton(text) {
@@ -184,11 +169,19 @@ public class GameplayPanel extends JPanel {
     }
 
     private void closeHamburgerMenu() {
-        if (hamburgerPopup != null) {
-            hamburgerPopup.dispose();
-            hamburgerPopup = null;
-        }
+    // remove global listener เสมอ (กัน memory leak)
+    if (hamburgerOutsideListener != null) {
+        Toolkit.getDefaultToolkit().removeAWTEventListener(hamburgerOutsideListener);
+        hamburgerOutsideListener = null;
     }
+
+    if (hamburgerPopup != null) {
+        try { hamburgerPopup.setVisible(false); } catch (Exception ignored) {}
+        try { hamburgerPopup.dispose(); } catch (Exception ignored) {}
+        hamburgerPopup = null;
+    }
+}
+
 
     // ── Shop Dialog ─────────────────────────────────────────────────────────────
     private void openShopDialog(Window owner) {

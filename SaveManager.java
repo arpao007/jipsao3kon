@@ -1,33 +1,38 @@
 import java.io.*;
 import java.util.Properties;
+import java.time.LocalDate;
 
 /**
- * SaveManager.java
- * บันทึกและโหลดข้อมูลเกมลงไฟล์ save.properties
+ * SaveManager
+ * - เซฟ/โหลดสถานะเกมลงไฟล์ properties (save.properties)
+ * - ใช้ LocalDate (gameDate) ตามที่ GameLogic ใช้อยู่
  */
 public class SaveManager {
 
     private static final String SAVE_FILE = "save.properties";
 
-    // ────────────────────────────────────────────────
+    public static boolean hasSave() {
+        return new File(SAVE_FILE).exists();
+    }
+
+    // ──────────────────────────────────────────────
     // SAVE
-    // ────────────────────────────────────────────────
-    public static void save(GameLogic logic, GameDate gameDate) {
+    // ──────────────────────────────────────────────
+    public static void save(GameLogic logic, LocalDate date) {
         Properties p = new Properties();
 
-        // GameLogic
-        p.setProperty("character",    logic.getSelectedCharacter());
-        p.setProperty("money",        String.valueOf(logic.getMoney()));
-        p.setProperty("energy",       String.valueOf(logic.getEnergy()));
-        p.setProperty("affection",    String.valueOf(logic.getCurrentAffection()));
-        p.setProperty("affectionMean",  String.valueOf(logic.getAffection("มีน")));
-        p.setProperty("affectionPloy",  String.valueOf(logic.getAffection("พลอย")));
-        p.setProperty("affectionLilli", String.valueOf(logic.getAffection("ลิลลี่")));
+        // core
+        p.setProperty("character",  logic.getSelectedCharacter());
 
-        // GameDate
-        p.setProperty("year",  String.valueOf(gameDate.getYear()));
-        p.setProperty("month", String.valueOf(gameDate.getMonth()));
-        p.setProperty("day",   String.valueOf(gameDate.getDay()));
+        // stats
+        p.setProperty("money",      String.valueOf(logic.getMoney()));
+        p.setProperty("energy",     String.valueOf(logic.getEnergy()));
+        p.setProperty("affection",  String.valueOf(logic.getCurrentAffection()));
+
+        // date (LocalDate)
+        p.setProperty("year",  String.valueOf(date.getYear()));
+        p.setProperty("month", String.valueOf(date.getMonthValue()));
+        p.setProperty("day",   String.valueOf(date.getDayOfMonth()));
 
         try (OutputStream out = new FileOutputStream(SAVE_FILE)) {
             p.store(out, "FirstLove Save File");
@@ -37,68 +42,59 @@ public class SaveManager {
         }
     }
 
-    // ────────────────────────────────────────────────
+    // ──────────────────────────────────────────────
     // LOAD
-    // ────────────────────────────────────────────────
-    public static boolean load(GameLogic logic, GameDate gameDate) {
-        File file = new File(SAVE_FILE);
-        if (!file.exists()) {
-            System.out.println("[SaveManager] ไม่พบไฟล์ save");
-            return false;
-        }
+    // ──────────────────────────────────────────────
+    public static boolean load(GameLogic logic) {
+        File f = new File(SAVE_FILE);
+        if (!f.exists()) return false;
 
         Properties p = new Properties();
-        try (InputStream in = new FileInputStream(file)) {
+        try (InputStream in = new FileInputStream(f)) {
             p.load(in);
-
-            // GameLogic
-            String character = p.getProperty("character", "");
-            logic.setSelectedCharacter(character);
-            logic.setMoney(parseInt(p, "money", 500));
-            logic.setEnergy(parseInt(p, "energy", 100));
-
-            // โหลด affection แยกตามตัวละคร
-            loadAffection(logic, p, "มีน",   "affectionMean");
-            loadAffection(logic, p, "พลอย",  "affectionPloy");
-            loadAffection(logic, p, "ลิลลี่", "affectionLilli");
-
-            // GameDate — ใช้ toAbsoluteDay / fromAbsoluteDay
-            int year  = parseInt(p, "year",  1);
-            int month = parseInt(p, "month", 1);
-            int day   = parseInt(p, "day",   1);
-            // copy ค่าเข้า gameDate ที่ส่งมา
-            gameDate.setDate(year, month, day);
-
-            System.out.println("[SaveManager] โหลดเกมสำเร็จ - " + character +
-                    " วันที่ " + day + "/" + month + "/" + year);
-            return true;
-
         } catch (IOException e) {
             System.err.println("[SaveManager] โหลดไม่สำเร็จ: " + e.getMessage());
             return false;
         }
+
+        try {
+            logic.setSelectedCharacter(p.getProperty("character", "มีน"));
+
+            logic.setMoney(Integer.parseInt(p.getProperty("money", "500")));
+            logic.setEnergy(Integer.parseInt(p.getProperty("energy", "100")));
+
+            int aff = Integer.parseInt(p.getProperty("affection", "0"));
+            try {
+                logic.setCurrentAffection(aff);
+            } catch (Throwable t) {
+                logic.setAffection(aff);
+            }
+
+            int y = Integer.parseInt(p.getProperty("year",  String.valueOf(LocalDate.now().getYear())));
+            int m = Integer.parseInt(p.getProperty("month", String.valueOf(LocalDate.now().getMonthValue())));
+            int d = Integer.parseInt(p.getProperty("day",   String.valueOf(LocalDate.now().getDayOfMonth())));
+            logic.setGameDate(LocalDate.of(y, m, d));
+
+            System.out.println("[SaveManager] โหลดเกมสำเร็จ ← " + SAVE_FILE);
+            return true;
+        } catch (Exception ex) {
+            System.err.println("[SaveManager] โหลดไม่สำเร็จ: " + ex.getMessage());
+            return false;
+        }
     }
 
-    // ────────────────────────────────────────────────
-    // ตรวจว่ามี save file ไหม
-    // ────────────────────────────────────────────────
-    public static boolean hasSave() {
-        return new File(SAVE_FILE).exists();
+    public static void deleteSave() {
+        File f = new File(SAVE_FILE);
+        if (f.exists() && f.delete()) {
+            System.out.println("[SaveManager] ลบเซฟแล้ว");
+        }
     }
 
-    // ────────────────────────────────────────────────
-    // Helpers
-    // ────────────────────────────────────────────────
-    private static int parseInt(Properties p, String key, int fallback) {
-        try { return Integer.parseInt(p.getProperty(key, String.valueOf(fallback))); }
-        catch (NumberFormatException e) { return fallback; }
-    }
-
-    private static void loadAffection(GameLogic logic, Properties p, String charName, String key) {
+    /** helper: สลับตัวละครที่เลือกแบบชั่วคราว */
+    public static void swapCharacter(GameLogic logic, String charName, Runnable action) {
         String prev = logic.getSelectedCharacter();
         logic.setSelectedCharacter(charName);
-        int val = parseInt(p, key, 0);
-        logic.setAffection(val);
-        logic.setSelectedCharacter(prev);
+        try { action.run(); }
+        finally { logic.setSelectedCharacter(prev); }
     }
 }

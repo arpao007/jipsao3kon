@@ -86,6 +86,7 @@ public class GameStoryUI extends JPanel {
         this.playerName     = name;
         this.currentChapter = 0;
         this.affection      = 0;
+        if (logic != null) logic.setCurrentAffection(0);
         this.uiState        = UIState.STORY;
         rebuildUI();
     }
@@ -94,6 +95,7 @@ public class GameStoryUI extends JPanel {
         this.playerName     = name;
         this.currentChapter = chapterIdx;
         this.affection      = aff;
+        if (logic != null) logic.setCurrentAffection(aff);
         this.uiState        = UIState.STORY;
         rebuildUI();
     }
@@ -319,6 +321,8 @@ public class GameStoryUI extends JPanel {
             @Override protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D)g;
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                // ดึงค่าความชอบจาก GameLogic เป็นหลัก (เพื่อให้ Shop/Work อัปเดตแล้ว UI ขึ้นทันที)
+                int aff = (logic != null) ? logic.getCurrentAffection() : affection;
                 int bh = 10, by = (getHeight()-bh)/2;
                 g2.setFont(new Font("Tahoma", Font.BOLD, rl!=null?rl.fontSmall:11));
                 g2.setColor(LILAC_DARK);
@@ -329,13 +333,13 @@ public class GameStoryUI extends JPanel {
                 int tx = lw+4, tw = getWidth()-tx-34;
                 g2.setColor(new Color(0xE0C0D8));
                 g2.fillRoundRect(tx, by, tw, bh, bh, bh);
-                int fw = (int)(tw*(affection/(double)MAX_AFFECTION));
+                int fw = (int)(tw*(aff/(double)MAX_AFFECTION));
                 if (fw > 0) {
                     g2.setPaint(new GradientPaint(tx,0,PINK_LIGHT,tx+fw,0,PINK_DEEP));
                     g2.fillRoundRect(tx, by, fw, bh, bh, bh);
                 }
                 g2.setColor(TEXT_DARK);
-                String pct = affection + "%";
+                String pct = aff + "%";
                 g2.drawString(pct, tx+tw+5, getHeight()/2 + fm.getAscent()/2 - 2);
             }
         };
@@ -507,7 +511,13 @@ public class GameStoryUI extends JPanel {
             case BAD:      delta = -2; break;
         }
         lastAffectionDelta = delta;
-        affection = Math.max(0, Math.min(MAX_AFFECTION, affection + delta));
+        // ให้ GameLogic เป็นแหล่งความจริงเดียว (Shop/Work ก็จะอัปเดตค่าเดียวกัน)
+        if (logic != null) {
+            logic.addAffection(delta);
+            affection = logic.getCurrentAffection();
+        } else {
+            affection = Math.max(0, Math.min(MAX_AFFECTION, affection + delta));
+        }
         if (affectionBar != null) affectionBar.repaint();
 
         if (choice.reaction == null) {
@@ -632,106 +642,128 @@ public class GameStoryUI extends JPanel {
         }
     }
 
-    private void buildMenuPopup(JPanel overlay, int pw, int ph) {
-        int topArea = (int)(ph * 0.60);
-        int pad     = Math.max(8, pw / 90);
-        int barH    = Math.max(30, (int)((ph - topArea) * 0.10));
-        int popW    = Math.max(200, Math.min(260, (int)(pw * 0.22)));
-        int itemH   = Math.max(44, (int)((ph - topArea) * 0.13));
-        int popH    = itemH * 4 + 20;
-        int popX    = pw - pad - popW;
-        int popY    = topArea + pad + barH + 4;
+private void buildMenuPopup(JPanel overlay, int pw, int ph) {
+    overlay.removeAll();        // ✅ ป้องกัน popup ซ้อนตอน rebuildUI()
+    overlay.setLayout(null);
 
-        JPanel popup = new JPanel(null) {
-            @Override protected void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D)g;
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(new Color(0,0,0,40));
-                g2.fillRoundRect(4, 6, getWidth(), getHeight(), 22, 22);
-                g2.setColor(new Color(255, 245, 252, 248));
-                g2.fillRoundRect(0, 0, getWidth()-4, getHeight()-6, 22, 22);
-                g2.setStroke(new BasicStroke(2f));
-                g2.setColor(new Color(0xE8759A));
-                g2.drawRoundRect(1, 1, getWidth()-6, getHeight()-8, 21, 21);
+    int topArea = (int)(ph * 0.60);
+    int pad     = Math.max(8, pw / 90);
+    int barH    = Math.max(30, (int)((ph - topArea) * 0.10));
+    int popW    = Math.max(200, Math.min(260, (int)(pw * 0.22)));
+    int itemH   = Math.max(44, (int)((ph - topArea) * 0.13));
+
+    // เพิ่มเป็น 5 รายการ (มีปฏิทิน)
+    int popH    = itemH * 5 + 20;
+
+    int popX    = pw - pad - popW;
+    int popY    = topArea + pad + barH + 4;
+
+    JPanel popup = new JPanel(null) {
+        @Override protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D)g;
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setColor(new Color(0,0,0,40));
+            g2.fillRoundRect(4, 6, getWidth(), getHeight(), 22, 22);
+            g2.setColor(new Color(255, 245, 252, 248));
+            g2.fillRoundRect(0, 0, getWidth()-4, getHeight()-6, 22, 22);
+            g2.setStroke(new BasicStroke(2f));
+            g2.setColor(new Color(0xE8759A));
+            g2.drawRoundRect(1, 1, getWidth()-6, getHeight()-8, 21, 21);
+        }
+    };
+    popup.setOpaque(false);
+    popup.setBounds(popX, popY, popW, popH);
+    overlay.add(popup);
+    overlay.revalidate();
+    overlay.repaint();
+
+    // ✅ เพิ่ม "ปฏิทิน" ล่างสุด
+    String[] labels  = { "🏠  กลับบ้าน", "💼  ทำงาน", "🛒  ร้านค้า", "📅  ปฏิทิน", "🚪  ออกเกม" };
+    Color[]  colors  = {
+        new Color(0xA076BB), new Color(0x5B9AD5),
+        new Color(0x4CAF50), new Color(0xFF8F00),
+        new Color(0xE8759A)
+    };
+
+    Runnable[] actions = {
+        // 🏠 กลับบ้าน -> ไปหน้า HOME (HomePanel.java)
+        () -> {
+            closeMenu();
+            cardLayout.show(mainContainer, "HOME");
+        },
+
+        // 💼 ทำงาน (เปิดเป็น Dialog)
+        () -> {
+            closeMenu();
+            Window w = SwingUtilities.getWindowAncestor(this);
+            if (w instanceof JFrame) {
+                WorkPanel.showAsDialog((JFrame) w, logic);
+            } else {
+                JOptionPane.showMessageDialog(this, "ไม่พบหน้าต่างหลัก (JFrame)");
             }
-        };
-        popup.setOpaque(false);
-        popup.setBounds(popX, popY, popW, popH);
-        overlay.add(popup);
-
-        String[] labels  = { "🏠  กลับบ้าน", "💼  ทำงาน", "🛒  ร้านค้า", "🚪  ออกเกม" };
-        Color[]  colors  = {
-            new Color(0xA076BB), new Color(0x5B9AD5),
-            new Color(0x4CAF50), new Color(0xE8759A)
-        };
-        Runnable[] actions = {
-            () -> { closeMenu(); /* TODO: ไปหน้ากลับบ้าน */ },
-    // 💼 ทำงาน (เปิดเป็น Dialog)
-        () -> {
-        closeMenu();
-        Window w = SwingUtilities.getWindowAncestor(this);
-        if (w instanceof JFrame) {
-            WorkPanel.showAsDialog((JFrame) w, logic);
-        } else {
-            JOptionPane.showMessageDialog(this, "ไม่พบหน้าต่างหลัก (JFrame)");
-        }
         },
 
-    // 🛒 ร้านค้า (เปิดเป็น Dialog)
+        // 🛒 ร้านค้า (เปิดเป็น Dialog)
         () -> {
-        closeMenu();
-        Window w = SwingUtilities.getWindowAncestor(this);
-        if (w instanceof JFrame) {
-            ShopPanel.showAsDialog((JFrame) w, logic);
-        } else {
-            JOptionPane.showMessageDialog(this, "ไม่พบหน้าต่างหลัก (JFrame)");
-        }
+            closeMenu();
+            Window w = SwingUtilities.getWindowAncestor(this);
+            if (w instanceof JFrame) {
+                ShopPanel.showAsDialog((JFrame) w, logic);
+            } else {
+                JOptionPane.showMessageDialog(this, "ไม่พบหน้าต่างหลัก (JFrame)");
+            }
         },
 
-    // 🚪 ออกเกม (ออกจริง ๆ)
+        // 📅 ปฏิทิน -> ไปหน้า CALENDAR
         () -> {
-        closeMenu();
+            closeMenu();
+            cardLayout.show(mainContainer, "CALENDAR");
+        },
+
+        // 🚪 ออกเกม
+        () -> {
+            closeMenu();
             int r = JOptionPane.showConfirmDialog(this, "ออกจากเกมใช่ไหม?", "ยืนยัน", JOptionPane.YES_NO_OPTION);
             if (r == JOptionPane.YES_OPTION) System.exit(0);
         }
     };
 
-        for (int i = 0; i < labels.length; i++) {
-            final int fi = i;
-            final Color fc = colors[i];
-            final String fl = labels[i];
+    for (int i = 0; i < labels.length; i++) {
+        final int fi = i;
+        final Color fc = colors[i];
+        final String fl = labels[i];
 
-            JPanel item = new JPanel(null) {
-                boolean hov = false;
-                { setOpaque(false); setCursor(new Cursor(Cursor.HAND_CURSOR));
-                  addMouseListener(new MouseAdapter() {
-                      @Override public void mouseEntered(MouseEvent e){ hov=true; repaint(); }
-                      @Override public void mouseExited(MouseEvent e) { hov=false; repaint(); }
-                      @Override public void mouseReleased(MouseEvent e){ actions[fi].run(); }
-                  });
+        JPanel item = new JPanel(null) {
+            boolean hov = false;
+            { setOpaque(false); setCursor(new Cursor(Cursor.HAND_CURSOR));
+                addMouseListener(new MouseAdapter() {
+                    @Override public void mouseEntered(MouseEvent e){ hov=true; repaint(); }
+                    @Override public void mouseExited(MouseEvent e) { hov=false; repaint(); }
+                    @Override public void mouseReleased(MouseEvent e){ actions[fi].run(); }
+                });
+            }
+            @Override protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D)g;
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                if (hov) {
+                    g2.setColor(new Color(fc.getRed(), fc.getGreen(), fc.getBlue(), 28));
+                    g2.fillRoundRect(4, 2, getWidth()-8, getHeight()-4, 14, 14);
                 }
-                @Override protected void paintComponent(Graphics g) {
-                    Graphics2D g2 = (Graphics2D)g;
-                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                    if (hov) {
-                        g2.setColor(new Color(fc.getRed(), fc.getGreen(), fc.getBlue(), 28));
-                        g2.fillRoundRect(4, 2, getWidth()-8, getHeight()-4, 14, 14);
-                    }
-                    if (fi > 0) {
-                        g2.setColor(new Color(0xE8759A, false));
-                        g2.setStroke(new BasicStroke(0.8f));
-                        g2.drawLine(14, 0, getWidth()-14, 0);
-                    }
-                    g2.setFont(new Font("Tahoma", Font.BOLD, rl!=null ? rl.fontBody : 14));
-                    g2.setColor(hov ? fc : new Color(0x5A3060));
-                    FontMetrics fm = g2.getFontMetrics();
-                    g2.drawString(fl, 18, (getHeight()+fm.getAscent()-fm.getDescent())/2);
+                if (fi > 0) {
+                    g2.setColor(new Color(0xE8759A, false));
+                    g2.setStroke(new BasicStroke(0.8f));
+                    g2.drawLine(14, 0, getWidth()-14, 0);
                 }
-            };
-            item.setBounds(0, 10 + i * itemH, popW - 4, itemH);
-            popup.add(item);
-        }
+                g2.setFont(new Font("Tahoma", Font.BOLD, rl!=null ? rl.fontBody : 14));
+                g2.setColor(hov ? fc : new Color(0x5A3060));
+                FontMetrics fm = g2.getFontMetrics();
+                g2.drawString(fl, 18, (getHeight()+fm.getAscent()-fm.getDescent())/2);
+            }
+        };
+        item.setBounds(0, 10 + i * itemH, popW - 4, itemH);
+        popup.add(item);
     }
+}
 
     // ──────────────────────────────────────────────
     private JButton makeRoundBtn(String text, Color cd, Color cl,

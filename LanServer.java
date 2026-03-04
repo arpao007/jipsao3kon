@@ -162,9 +162,10 @@ public class LanServer {
         try { if (tcpServer != null) tcpServer.close(); } catch (IOException ignored) {}
     }
 
-    /** Host กดเริ่มเกม — broadcast "START_GAME" ให้ทุกคน */
+    /** Host กดเริ่มเกม — broadcast "START_GAME" ให้ทุกคน แล้วหยุด broadcast */
     public boolean startGame() {
         if (clients.size() < MIN_PLAYERS) return false;
+        running = false; // หยุด broadcast loop ด้วย
         for (ClientHandler c : clients) c.send("START_GAME");
         System.out.println("[LanServer] START_GAME broadcast (" + clients.size() + " ผู้เล่น)");
         return true;

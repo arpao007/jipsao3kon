@@ -51,6 +51,7 @@ public class MultiplayerLobby extends JPanel {
     private JPanel roomListPanel;
     private JButton startBtn;   // ปุ่มเริ่มเกม (แสดงเฉพาะ host)
     private boolean isHost = false;
+    private boolean gameStarted = false; // flag กัน triggerGameStart ยิงซ้ำ
 
     // ── Petal Animation ──────────────────────────────
     private final List<Petal> petals = new ArrayList<>();
@@ -525,11 +526,12 @@ public class MultiplayerLobby extends JPanel {
 
     /** เรียกเมื่อได้รับ START_GAME (ทุกคนรวมถึง host) */
     private void triggerGameStart() {
-        // หยุด animation + discovery ก่อนเปลี่ยนหน้า
+        if (gameStarted) return; // กัน fire ซ้ำ
+        gameStarted = true;
+        System.out.println("[MultiplayerLobby] triggerGameStart → ไปหน้า HOME");
         if (animTimer != null) animTimer.stop();
         if (discovery != null) discovery.stop();
-        // เปลี่ยนไปหน้าเกม — ปรับ "GAMEPLAY" ให้ตรงกับ card name จริงใน RunGame
-        parentLayout.show(parentContainer, "GAMEPLAY");
+        parentLayout.show(parentContainer, "HOME"); // card name จริงใน RunGame
     }
 
     private void handleLeave() {
@@ -538,6 +540,7 @@ public class MultiplayerLobby extends JPanel {
         if (discovery != null) discovery.stop();
         client = null; server = null;
         isHost = false;
+        gameStarted = false;
         if (startBtn != null) { startBtn.setVisible(false); startBtn.setEnabled(false); }
         innerLayout.show(innerContainer, "CHOICE");
         for (int i = 0; i < 3; i++) {

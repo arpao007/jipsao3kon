@@ -46,10 +46,14 @@ public class LanDiscovery {
         t.setDaemon(true);
         t.start();
 
-        // thread ลบห้องเก่า (ไม่ได้ broadcast มา > 6 วิ)
+        // thread ลบห้องเก่า
         Thread cleaner = new Thread(this::cleanLoop, "LanDiscovery-Clean");
         cleaner.setDaemon(true);
         cleaner.start();
+
+        // แจ้ง listener ทันทีว่า "กำลังค้นหา" (รายการว่าง)
+        // → ไม่ต้องรอ broadcast แรกถึงจะอัปเดต UI
+        notifyListener();
     }
 
     public void stop() {
@@ -106,9 +110,11 @@ public class LanDiscovery {
         }
         if (!found) {
             rooms.add(new RoomInfo(code, hostName, ip, port));
-            notifyListener();
             System.out.println("[LanDiscovery] พบห้องใหม่: " + code + " จาก " + ip);
         }
+        // notify ทุกครั้งที่ได้รับ broadcast (ไม่ใช่แค่ห้องใหม่)
+        // → UI refresh ทันทีโดยไม่ต้องรอรอบถัดไป
+        notifyListener();
     }
 
     private void cleanLoop() {
@@ -116,7 +122,7 @@ public class LanDiscovery {
             try {
                 Thread.sleep(3000);
                 long now = System.currentTimeMillis();
-                boolean changed = rooms.removeIf(r -> now - r.lastSeen > 6000);
+                boolean changed = rooms.removeIf(r -> now - r.lastSeen > 3000); // เดิม 6 วิ → 3 วิ
                 if (changed) notifyListener();
             } catch (InterruptedException ignored) {}
         }

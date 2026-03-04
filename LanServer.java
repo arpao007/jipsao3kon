@@ -88,7 +88,7 @@ public class LanServer {
                         System.out.println("[LanServer] broadcast -> " + addr.getHostAddress());
                     } catch (Exception ignored) {}
                 }
-                Thread.sleep(2000);
+                Thread.sleep(800); // broadcast ทุก 0.8 วิ (เดิม 2 วิ) → เจอห้องเร็วขึ้น
             }
         } catch (Exception e) {
             if (running) System.err.println("[LanServer] broadcast error: " + e.getMessage());

@@ -53,8 +53,8 @@ public class GameplayPanel extends JPanel {
         center.setOpaque(false);
 
         JLabel hint = new JLabel("<html><div style='text-align:center'>"
-                + "หน้านี้คือ GameplayPanel (ตัวอย่าง)<br>"
-                + "เมนู ☰ จะเปิด ร้านค้า/ทำงาน/บันทึก/กลับเมนู ได้"
+                + "หน้านี้คือ GameplayPanel<br>"
+                + "เมนู ☰ เลือก '🏠 กลับบ้าน' เพื่อเริ่มวันใหม่"
                 + "</div></html>");
         hint.setFont(new Font("Tahoma", Font.PLAIN, 14));
         hint.setForeground(new Color(0x4A2060));
@@ -75,7 +75,7 @@ public class GameplayPanel extends JPanel {
     }
 
     // ════════════════════════════════════════════════════════════════════════════
-    // Hamburger Menu — Shop & Work
+    // Hamburger Menu Logic
     // ════════════════════════════════════════════════════════════════════════════
 
     private void toggleHamburgerMenu(JButton anchor) {
@@ -95,6 +95,7 @@ public class GameplayPanel extends JPanel {
     hamburgerPopup.setAlwaysOnTop(true);
     hamburgerPopup.setBackground(new Color(0, 0, 0, 0));
 
+<<<<<<< Updated upstream
     JPanel panel = buildHamburgerPanel();
     hamburgerPopup.setContentPane(panel);
     hamburgerPopup.pack();
@@ -114,14 +115,89 @@ public class GameplayPanel extends JPanel {
             if (!(evt instanceof MouseEvent)) return;
             MouseEvent me = (MouseEvent) evt;
             if (me.getID() != MouseEvent.MOUSE_PRESSED) return;
+=======
+        // 🛍️ ร้านค้า
+        panel.add(makeHamburgerItem("🛍️  ร้านค้า", new Color(0xE91E8C), () -> {
+            closeHamburgerMenu();
+            openShopDialog(owner);
+        }));
+        panel.add(makeMenuDivider());
+
+        // 💼 ทำงาน
+        panel.add(makeHamburgerItem("💼  ทำงาน", new Color(0x1565C0), () -> {
+            closeHamburgerMenu();
+            openWorkDialog(owner);
+        }));
+        panel.add(makeMenuDivider());
+
+        // 🏠 กลับบ้าน (เพิ่มใหม่ตามคำขอ)
+        panel.add(makeHamburgerItem("🏠  กลับบ้าน (พักผ่อน)", new Color(0xFF8F00), () -> {
+            closeHamburgerMenu();
+            
+            // 1. แจ้งเตือนยืนยัน
+            int confirm = JOptionPane.showConfirmDialog(this,
+                    "คุณต้องการกลับบ้านเพื่อพักผ่อนและเริ่มวันใหม่ใช่หรือไม่?\n(พลังงานจะเต็ม และโควต้ากิจกรรมจะถูกรีเซ็ต)",
+                    "ยืนยันการกลับบ้าน", JOptionPane.YES_NO_OPTION);
+
+            if (confirm == JOptionPane.YES_OPTION) {
+                // 2. ข้ามวัน
+                logic.sleep(); // รีเซ็ตพลังงานใน GameLogic
+                gameDate = gameDate.plusDays(1); // ขยับวันที่
+                
+                addLog("🌙 กลับบ้านพักผ่อน... วันที่ปัจจุบัน: " + gameDate);
+                JOptionPane.showMessageDialog(this, 
+                        "อรุณสวัสดิ์! คุณพักผ่อนจนพลังงานเต็มแล้ว\nเริ่มต้นวันใหม่: " + gameDate, 
+                        "เช้าวันใหม่", JOptionPane.INFORMATION_MESSAGE);
+                refreshUI();
+            }
+        }));
+        panel.add(makeMenuDivider());
+
+        // 💾 บันทึกเกม
+        panel.add(makeHamburgerItem("💾  บันทึกเกม", new Color(0x2E7D32), () -> {
+            closeHamburgerMenu();
+            SaveManager.save(logic, gameDate);
+            addLog("💾 บันทึกเกมสำเร็จ!");
+            JOptionPane.showMessageDialog(this, "บันทึกสำเร็จ ♡", "บันทึก", JOptionPane.INFORMATION_MESSAGE);
+        }));
+        panel.add(makeMenuDivider());
+
+        // 🚪 กลับเมนู
+        panel.add(makeHamburgerItem("🚪  กลับเมนู", new Color(0x888888), () -> {
+            closeHamburgerMenu();
+            int r = JOptionPane.showConfirmDialog(this,
+                    "กลับเมนูหลัก? (ข้อมูลที่ยังไม่ได้บันทึกจะหายไป)",
+                    "ยืนยัน", JOptionPane.YES_NO_OPTION);
+            if (r == JOptionPane.YES_OPTION) cardLayout.show(mainContainer, "MENU");
+        }));
+>>>>>>> Stashed changes
 
             if (hamburgerPopup == null || !hamburgerPopup.isVisible()) return;
 
+<<<<<<< Updated upstream
             Point p;
             try {
                 p = me.getLocationOnScreen();
             } catch (IllegalComponentStateException ex) {
                 return;
+=======
+        Point loc = anchor.getLocationOnScreen();
+        hamburgerPopup.setLocation(
+                loc.x + anchor.getWidth() - hamburgerPopup.getWidth(),
+                loc.y + anchor.getHeight() + 4
+        );
+        hamburgerPopup.setVisible(true);
+
+        Toolkit.getDefaultToolkit().addAWTEventListener(new AWTEventListener() {
+            @Override public void eventDispatched(AWTEvent evt) {
+                if (!(evt instanceof MouseEvent)) return;
+                MouseEvent me = (MouseEvent) evt;
+                if (me.getID() != MouseEvent.MOUSE_PRESSED) return;
+                if (hamburgerPopup != null && hamburgerPopup.isVisible() && !hamburgerPopup.getBounds().contains(me.getLocationOnScreen())) {
+                    closeHamburgerMenu();
+                    Toolkit.getDefaultToolkit().removeAWTEventListener(this);
+                }
+>>>>>>> Stashed changes
             }
 
             Rectangle r = hamburgerPopup.getBounds(); // screen coords
@@ -134,6 +210,10 @@ public class GameplayPanel extends JPanel {
 }
 
 
+
+    // ────────────────────────────────────────────────────────────
+    //  UI Elements (Helpers)
+    // ────────────────────────────────────────────────────────────
 
     private JButton makeHamburgerItem(String text, Color color, Runnable action) {
         JButton btn = new JButton(text) {
@@ -175,6 +255,7 @@ public class GameplayPanel extends JPanel {
         hamburgerOutsideListener = null;
     }
 
+<<<<<<< Updated upstream
     if (hamburgerPopup != null) {
         try { hamburgerPopup.setVisible(false); } catch (Exception ignored) {}
         try { hamburgerPopup.dispose(); } catch (Exception ignored) {}
@@ -184,6 +265,12 @@ public class GameplayPanel extends JPanel {
 
 
     // ── Shop Dialog ─────────────────────────────────────────────────────────────
+=======
+    // ────────────────────────────────────────────────────────────
+    //  Shop Dialog
+    // ────────────────────────────────────────────────────────────
+
+>>>>>>> Stashed changes
     private void openShopDialog(Window owner) {
         JDialog dialog = (owner instanceof JFrame)
                 ? new JDialog((JFrame) owner, "🛍️ ร้านค้า", true)
@@ -337,7 +424,10 @@ public class GameplayPanel extends JPanel {
         return card;
     }
 
-    // ── Work Dialog ─────────────────────────────────────────────────────────────
+    // ────────────────────────────────────────────────────────────
+    //  Work Dialog
+    // ────────────────────────────────────────────────────────────
+
     private void openWorkDialog(Window owner) {
         JDialog dialog = (owner instanceof JFrame)
                 ? new JDialog((JFrame) owner, "💼 ทำงาน", true)
@@ -586,7 +676,10 @@ public class GameplayPanel extends JPanel {
         quiz.setVisible(true);
     }
 
-    // ── Dialog helpers ───────────────────────────────────────────────────────────
+    // ────────────────────────────────────────────────────────────
+    //  Helper Methods
+    // ────────────────────────────────────────────────────────────
+
     private JButton makeDialogCloseBtn(Runnable onClose) {
         JButton btn = new JButton("✕");
         btn.setFont(new Font("Arial", Font.BOLD, 17));
@@ -616,7 +709,6 @@ public class GameplayPanel extends JPanel {
         return l;
     }
 
-    // ── misc helpers ────────────────────────────────────────────────────────────
     private void addLog(String s) {
         logArea.append(s + "\n");
         logArea.setCaretPosition(logArea.getDocument().getLength());
@@ -628,6 +720,6 @@ public class GameplayPanel extends JPanel {
     }
 
     private void spawnHearts(int amount) {
-        // TODO: ทำเอฟเฟกต์หัวใจทีหลังได้ (ปล่อยว่างไว้ไม่ทำให้พัง)
+        // เอฟเฟกต์หัวใจ (ถ้ามี)
     }
 }

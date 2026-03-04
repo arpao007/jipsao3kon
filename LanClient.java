@@ -21,6 +21,7 @@ public class LanClient {
         void onRoomFull();
         void onError(String msg);
         void onDisconnected();
+        void onGameStart(); // server broadcast เริ่มเกม
     }
 
     private ClientListener listener;
@@ -90,6 +91,11 @@ public class LanClient {
                 : Arrays.asList(raw.split(","));
             if (listener != null)
                 javax.swing.SwingUtilities.invokeLater(() -> listener.onPlayersChanged(players));
+
+        } else if (msg.equals("START_GAME")) {
+            System.out.println("[LanClient] ได้รับ START_GAME");
+            if (listener != null)
+                javax.swing.SwingUtilities.invokeLater(() -> listener.onGameStart());
         }
     }
 

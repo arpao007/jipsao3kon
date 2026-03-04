@@ -49,6 +49,8 @@ public class MultiplayerLobby extends JPanel {
     private JLabel roomCodeLabel;
     private JLabel lobbyStatusLabel;
     private JPanel roomListPanel;
+    private JButton startBtn;   // ปุ่มเริ่มเกม (แสดงเฉพาะ host)
+    private boolean isHost = false;
 
     // ── Petal Animation ──────────────────────────────
     private final List<Petal> petals = new ArrayList<>();
@@ -206,7 +208,7 @@ public class MultiplayerLobby extends JPanel {
         cc.add(createBtn);
 
         // ── Card เข้าร่วม ───────────────────────────
-        JPanel jc = makeGlassCard(650, 165, 340, 400);
+        JPanel jc = makeGlassCard(650, 165, 340, 430);
         p.add(jc);
 
         addLabel(jc, "🚪", new Font("Segoe UI Emoji", Font.PLAIN, 64), Color.WHITE, 0, 16, 340, 80);
@@ -219,13 +221,25 @@ public class MultiplayerLobby extends JPanel {
         roomListPanel.setLayout(new BoxLayout(roomListPanel, BoxLayout.Y_AXIS));
         roomListPanel.setBackground(new Color(255, 235, 248));
         JScrollPane scroll = new JScrollPane(roomListPanel);
-        scroll.setBounds(20, 176, 300, 110);
+        scroll.setBounds(20, 176, 300, 108);
         scroll.setBorder(BorderFactory.createLineBorder(CARD_BORDER, 1, true));
         scroll.getViewport().setBackground(new Color(255, 235, 248));
         jc.add(scroll);
 
+        // ── ปุ่ม Refresh + สถานะ ────────────────────────
+        JLabel scanStatus = new JLabel("🔍 กำลังค้นหา...", SwingConstants.CENTER);
+        scanStatus.setFont(new Font("Tahoma", Font.ITALIC, 12));
+        scanStatus.setForeground(new Color(0xAA90BB));
+        scanStatus.setBounds(0, 292, 340, 20);
+        jc.add(scanStatus);
+
+        JButton refreshBtn = makePinkButton("🔄 รีเฟรช", new Color(0xC080C0));
+        refreshBtn.setFont(new Font("Tahoma", Font.BOLD, 13));
+        refreshBtn.setBounds(85, 314, 170, 36);
+        jc.add(refreshBtn);
+
         JButton joinBtn = makePinkButton("✦ เข้าร่วม", new Color(0x7BAAD4));
-        joinBtn.setBounds(45, 316, 250, 44);
+        joinBtn.setBounds(45, 356, 250, 44);
         joinBtn.setEnabled(false);
         jc.add(joinBtn);
 
@@ -234,39 +248,63 @@ public class MultiplayerLobby extends JPanel {
             if (selected[0] != null) handleJoinRoom(selected[0], joinBtn);
         });
 
-        // Discovery scan
-        discovery = new LanDiscovery();
-        discovery.setListener(rooms -> {
-            roomListPanel.removeAll();
+        // helper: start discovery และ bind listener
+        Runnable startDiscovery = () -> {
+            if (discovery != null) discovery.stop();
+            discovery = new LanDiscovery();
+            scanStatus.setText("🔍 กำลังค้นหา...");
             selected[0] = null;
             joinBtn.setEnabled(false);
-            if (rooms.isEmpty()) {
-                JLabel empty = new JLabel("  💭 กำลังค้นหาห้อง...", SwingConstants.LEFT);
-                empty.setForeground(new Color(0xAA90BB));
-                empty.setFont(new Font("Tahoma", Font.ITALIC, 13));
-                roomListPanel.add(empty);
-            } else {
-                ButtonGroup bg = new ButtonGroup();
-                for (LanDiscovery.RoomInfo room : rooms) {
-                    JToggleButton rb = new JToggleButton("♡  " + room.toString());
-                    rb.setFont(new Font("Tahoma", Font.PLAIN, 13));
-                    rb.setBackground(new Color(255, 235, 248));
-                    rb.setForeground(TEXT_DARK);
-                    rb.setFocusPainted(false);
-                    rb.setBorder(BorderFactory.createEmptyBorder(6, 10, 6, 10));
-                    rb.setMaximumSize(new Dimension(298, 34));
-                    rb.addActionListener(ev -> {
-                        selected[0] = room;
-                        joinBtn.setEnabled(true);
-                    });
-                    bg.add(rb);
-                    roomListPanel.add(rb);
+            discovery.setListener(rooms -> {
+                roomListPanel.removeAll();
+                selected[0] = null;
+                joinBtn.setEnabled(false);
+                if (rooms.isEmpty()) {
+                    scanStatus.setText("🔍 กำลังค้นหา...");
+                    JLabel empty = new JLabel("  ยังไม่พบห้องในเครือข่าย", SwingConstants.LEFT);
+                    empty.setForeground(new Color(0xAA90BB));
+                    empty.setFont(new Font("Tahoma", Font.ITALIC, 13));
+                    roomListPanel.add(empty);
+                } else {
+                    scanStatus.setText("✅ พบ " + rooms.size() + " ห้อง");
+                    ButtonGroup bg = new ButtonGroup();
+                    for (LanDiscovery.RoomInfo room : rooms) {
+                        JToggleButton rb = new JToggleButton("♡  " + room.toString());
+                        rb.setFont(new Font("Tahoma", Font.PLAIN, 13));
+                        rb.setBackground(new Color(255, 235, 248));
+                        rb.setForeground(TEXT_DARK);
+                        rb.setFocusPainted(false);
+                        rb.setBorder(BorderFactory.createEmptyBorder(6, 10, 6, 10));
+                        rb.setMaximumSize(new Dimension(298, 34));
+                        rb.addActionListener(ev -> {
+                            selected[0] = room;
+                            joinBtn.setEnabled(true);
+                        });
+                        bg.add(rb);
+                        roomListPanel.add(rb);
+                    }
                 }
-            }
-            roomListPanel.revalidate();
-            roomListPanel.repaint();
+                roomListPanel.revalidate();
+                roomListPanel.repaint();
+            });
+            discovery.start();
+        };
+
+        // Refresh button → restart discovery ใหม่ทั้งหมด
+        refreshBtn.addActionListener(e -> {
+            refreshBtn.setEnabled(false);
+            refreshBtn.setText("⏳ กำลัง...");
+            startDiscovery.run();
+            // re-enable หลัง 1.5 วิ
+            Timer t = new Timer(1500, ev -> {
+                refreshBtn.setEnabled(true);
+                refreshBtn.setText("🔄 รีเฟรช");
+            });
+            t.setRepeats(false);
+            t.start();
         });
-        discovery.start();
+
+        startDiscovery.run(); // เริ่มค้นหาทันที
 
         // Back
         JButton backBtn = makePinkButton("← กลับ", new Color(0xBB8899));
@@ -370,6 +408,20 @@ public class MultiplayerLobby extends JPanel {
         lobbyStatusLabel.setBounds(0, 510, 1200, 32);
         p.add(lobbyStatusLabel);
 
+        // ── ปุ่มเริ่มเกม (host เท่านั้น) ──────────────
+        startBtn = makePinkButton("▶  เริ่มเกม!", new Color(0xD46090));
+        startBtn.setBounds(475, 556, 250, 56);
+        startBtn.setEnabled(false);  // เปิดได้เมื่อ ≥ 2 คน
+        startBtn.setVisible(false);  // ซ่อนไว้ก่อน จนกว่าจะเป็น host
+        startBtn.setFont(new Font("Tahoma", Font.BOLD, 20));
+        startBtn.addActionListener(e -> {
+            if (server != null && server.startGame()) {
+                // host เริ่มเกมด้วยตัวเองด้วย
+                triggerGameStart();
+            }
+        });
+        p.add(startBtn);
+
         // Leave button
         JButton leaveBtn = makePinkButton("← ออกจากห้อง", new Color(0xC06070));
         leaveBtn.setBounds(40, 725, 230, 44);
@@ -399,6 +451,8 @@ public class MultiplayerLobby extends JPanel {
         t.setRepeats(false);
         t.start();
         roomCodeLabel.setText(server.getRoomCode());
+        isHost = true;
+        startBtn.setVisible(true); // แสดงปุ่มเริ่มให้ host
         innerLayout.show(innerContainer, "LOBBY");
     }
 
@@ -410,6 +464,8 @@ public class MultiplayerLobby extends JPanel {
         setupClientListener(false);
         client.connect(room.ip, room.port);
         roomCodeLabel.setText(room.roomCode);
+        isHost = false;
+        startBtn.setVisible(false);
         innerLayout.show(innerContainer, "LOBBY");
     }
 
@@ -420,6 +476,9 @@ public class MultiplayerLobby extends JPanel {
             }
             @Override public void onPlayersChanged(List<String> players) {
                 updateLobbySlots(players);
+            }
+            @Override public void onGameStart() {
+                triggerGameStart();
             }
             @Override public void onRoomFull() {
                 JOptionPane.showMessageDialog(MultiplayerLobby.this,
@@ -455,6 +514,22 @@ public class MultiplayerLobby extends JPanel {
             slotCards[i].repaint();
         }
         lobbyStatusLabel.setText("ผู้เล่น " + players.size() + " / 3");
+
+        // เปิดปุ่มเริ่มเกมเมื่อมี ≥ 2 คน (host เท่านั้นที่เห็นปุ่มนี้)
+        if (startBtn != null) {
+            boolean canStart = players.size() >= LanServer.MIN_PLAYERS;
+            startBtn.setEnabled(canStart);
+            startBtn.setForeground(canStart ? new Color(0xFFF5FA) : new Color(0xDDAABB));
+        }
+    }
+
+    /** เรียกเมื่อได้รับ START_GAME (ทุกคนรวมถึง host) */
+    private void triggerGameStart() {
+        // หยุด animation + discovery ก่อนเปลี่ยนหน้า
+        if (animTimer != null) animTimer.stop();
+        if (discovery != null) discovery.stop();
+        // เปลี่ยนไปหน้าเกม — ปรับ "GAMEPLAY" ให้ตรงกับ card name จริงใน RunGame
+        parentLayout.show(parentContainer, "GAMEPLAY");
     }
 
     private void handleLeave() {
@@ -462,6 +537,8 @@ public class MultiplayerLobby extends JPanel {
         if (server    != null) server.stop();
         if (discovery != null) discovery.stop();
         client = null; server = null;
+        isHost = false;
+        if (startBtn != null) { startBtn.setVisible(false); startBtn.setEnabled(false); }
         innerLayout.show(innerContainer, "CHOICE");
         for (int i = 0; i < 3; i++) {
             slotLabels[i].setText("— รอผู้เล่น —");

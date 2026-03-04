@@ -13,6 +13,7 @@ public class LanServer {
     public static final int TCP_PORT       = 19566; // port TCP รับ client
     public static final int UDP_BROADCAST_PORT = 19567; // port UDP broadcast
     public static final int MAX_PLAYERS    = 3;
+    public static final int MIN_PLAYERS    = 2; // เริ่มเกมได้เมื่อมีอย่างน้อย 2 คน
 
     private final String roomCode;
     private final String hostName;
@@ -160,6 +161,17 @@ public class LanServer {
         for (ClientHandler c : clients) c.disconnect();
         try { if (tcpServer != null) tcpServer.close(); } catch (IOException ignored) {}
     }
+
+    /** Host กดเริ่มเกม — broadcast "START_GAME" ให้ทุกคน */
+    public boolean startGame() {
+        if (clients.size() < MIN_PLAYERS) return false;
+        for (ClientHandler c : clients) c.send("START_GAME");
+        System.out.println("[LanServer] START_GAME broadcast (" + clients.size() + " ผู้เล่น)");
+        return true;
+    }
+
+    /** คืนจำนวนผู้เล่นปัจจุบัน */
+    public int getPlayerCount() { return clients.size(); }
 
     // ════════════════════════════════════════════════
     // ClientHandler

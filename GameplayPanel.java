@@ -97,6 +97,7 @@ public class GameplayPanel extends JPanel {
 
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     JPanel panel = buildHamburgerPanel();
     hamburgerPopup.setContentPane(panel);
     hamburgerPopup.pack();
@@ -117,6 +118,8 @@ public class GameplayPanel extends JPanel {
             MouseEvent me = (MouseEvent) evt;
             if (me.getID() != MouseEvent.MOUSE_PRESSED) return;
 =======
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
         // 🛍️ ร้านค้า
@@ -222,6 +225,10 @@ public class GameplayPanel extends JPanel {
     //  UI Elements (Helpers)
     // ────────────────────────────────────────────────────────────
 
+    // ────────────────────────────────────────────────────────────
+    //  UI Elements (Helpers)
+    // ────────────────────────────────────────────────────────────
+
     private JButton makeHamburgerItem(String text, Color color, Runnable action) {
         JButton btn = new JButton(text) {
             @Override protected void paintComponent(Graphics g) {
@@ -264,6 +271,7 @@ public class GameplayPanel extends JPanel {
 
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     if (hamburgerPopup != null) {
         try { hamburgerPopup.setVisible(false); } catch (Exception ignored) {}
         try { hamburgerPopup.dispose(); } catch (Exception ignored) {}
@@ -276,11 +284,16 @@ public class GameplayPanel extends JPanel {
 =======
 =======
 >>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
     // ────────────────────────────────────────────────────────────
     //  Shop Dialog
     // ────────────────────────────────────────────────────────────
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes

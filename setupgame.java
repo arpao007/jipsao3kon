@@ -6,21 +6,10 @@ import java.awt.geom.*;
 import java.awt.image.BufferedImage;
 import java.util.function.BiConsumer;
 
-/**
- * setupgame.java
- * หน้าตั้งค่าเกมใหม่ — ตั้งชื่อตัวละครและเลือกสาว 3 คน
- *
- * วิธีใช้จาก RunGame:
- *   setupgame newGame = new setupgame(cardLayout, mainContainer,
- *       (playerName, chosenGirl) -> {
- *           // รับ playerName (String) และ chosenGirl (GirlData)
- *           cardLayout.show(mainContainer, "GAMEPLAY");
- *       });
- *   mainContainer.add(newGame, "NEW_GAME");
- *   cardLayout.show(mainContainer, "NEW_GAME");
- */
-public class setupgame extends JPanel {
 
+public class setupgame extends JPanel {
+    
+private float alpha = 1.0f;
     // ── ข้อมูลสาวแต่ละคน ──────────────────────────────────────────────────────
     public static class GirlData {
         public final String id, name, nickname, description, trait1, trait2, trait3;

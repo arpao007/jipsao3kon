@@ -60,7 +60,12 @@ public class LanDiscovery {
     // ────────────────────────────────────────────────
     private void listenLoop() {
         try {
-            socket = new DatagramSocket(LanServer.UDP_BROADCAST_PORT);
+            // SO_REUSEADDR = ให้หลาย process bind port เดียวกันได้
+            // ต้อง set ก่อน bind เสมอ
+            socket = new DatagramSocket(null);
+            socket.setReuseAddress(true);
+            socket.setBroadcast(true);
+            socket.bind(new InetSocketAddress(LanServer.UDP_BROADCAST_PORT));
             socket.setSoTimeout(3000);
             byte[] buf = new byte[256];
             while (running) {

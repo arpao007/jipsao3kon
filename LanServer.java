@@ -72,15 +72,48 @@ public class LanServer {
             // format: "FIRSTLOVE:<roomCode>:<hostName>:<TCP_PORT>"
             String msg = "FIRSTLOVE:" + roomCode + ":" + hostName + ":" + TCP_PORT;
             byte[] buf = msg.getBytes("UTF-8");
-            InetAddress broadcast = InetAddress.getByName("255.255.255.255");
-            DatagramPacket pkt = new DatagramPacket(buf, buf.length, broadcast, UDP_BROADCAST_PORT);
+
             while (running) {
-                udp.send(pkt);
+                // ส่งไปทุก broadcast address ของทุก network interface
+                // (แก้ปัญหา 255.255.255.255 ถูกบล็อกโดย router/OS)
+                List<InetAddress> broadcastAddrs = getBroadcastAddresses();
+                // fallback ถ้าหา interface ไม่ได้
+                if (broadcastAddrs.isEmpty()) {
+                    broadcastAddrs.add(InetAddress.getByName("255.255.255.255"));
+                }
+                for (InetAddress addr : broadcastAddrs) {
+                    try {
+                        DatagramPacket pkt = new DatagramPacket(buf, buf.length, addr, UDP_BROADCAST_PORT);
+                        udp.send(pkt);
+                        System.out.println("[LanServer] broadcast -> " + addr.getHostAddress());
+                    } catch (Exception ignored) {}
+                }
                 Thread.sleep(2000);
             }
         } catch (Exception e) {
             if (running) System.err.println("[LanServer] broadcast error: " + e.getMessage());
         }
+    }
+
+    /** หา broadcast address จากทุก network interface ที่ใช้งานได้ */
+    private List<InetAddress> getBroadcastAddresses() {
+        List<InetAddress> list = new ArrayList<>();
+        try {
+            Enumeration<NetworkInterface> ifaces = NetworkInterface.getNetworkInterfaces();
+            while (ifaces.hasMoreElements()) {
+                NetworkInterface iface = ifaces.nextElement();
+                if (!iface.isUp() || iface.isLoopback() || iface.isVirtual()) continue;
+                for (InterfaceAddress ia : iface.getInterfaceAddresses()) {
+                    InetAddress broadcast = ia.getBroadcast();
+                    if (broadcast != null) {
+                        list.add(broadcast);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("[LanServer] getBroadcastAddresses: " + e.getMessage());
+        }
+        return list;
     }
 
     // ────────────────────────────────────────────────

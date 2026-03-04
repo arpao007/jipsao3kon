@@ -56,6 +56,7 @@ public class GameStoryUI extends JPanel {
     private JPanel  reactionBox;
     private JLabel  reactionText2;
     private JLabel  deltaLbl;
+    private JLabel  characterLabel;
     private JButton continueBtn;
     private JPanel  endingPanel;
     private JPanel  hamburgerBtn;
@@ -138,6 +139,11 @@ public class GameStoryUI extends JPanel {
         int pad = Math.max(8, w / 90);
 
         int topArea = (int)(h * 0.60);
+        characterLabel = new JLabel();
+        characterLabel.setBounds(0, 0, w, topArea);
+        characterLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        characterLabel.setVerticalAlignment(SwingConstants.BOTTOM); // วางตัวละครให้ยืนบนเส้นแบ่งพอดี
+        add(characterLabel);
         int botH    = h - topArea;
 
         // ── Info bar ──
@@ -315,6 +321,52 @@ public class GameStoryUI extends JPanel {
         setComponentZOrder(menuOverlay, 0);
     }
 
+    private void updateCharacterImage(String imageStr) {
+    if (imageStr == null || imageStr.isEmpty()) {
+        characterLabel.setIcon(null);
+        return;
+    }
+    try {
+        String[] parts = imageStr.split("\\|");
+        
+        // พื้นที่เป้าหมาย (60% บนของ 1200x800)
+        int targetW = 1200;
+        int targetH = 480;
+
+        // สร้างภาพรวมเลเยอร์
+        java.awt.image.BufferedImage combined = new java.awt.image.BufferedImage(
+            targetW, targetH, java.awt.image.BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2 = combined.createGraphics();
+        
+        // ตั้งค่าคุณภาพการแสดงผล
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+
+        for (String fileName : parts) {
+            java.net.URL imgURL = getClass().getResource("/res/" + fileName.trim());
+            if (imgURL != null) {
+                Image img = new ImageIcon(imgURL).getImage();
+                int iw = img.getWidth(null);
+                int ih = img.getHeight(null);
+
+                // --- ตรรกะใหม่: ปรับให้สูงพอดีพื้นที่ แต่ความกว้างไม่ยืด (สัดส่วนคงเดิม) ---
+                int nh = targetH; // ให้ความสูงเท่ากับพื้นที่ 480px
+                int nw = (int) (iw * ((double) targetH / ih)); // คำนวณความกว้างตามสัดส่วนจริง
+                
+                // วางตำแหน่งกึ่งกลางหน้าจอ
+                int x = (targetW - nw) / 2;
+                int y = 0;
+
+                g2.drawImage(img, x, y, nw, nh, null);
+            }
+        }
+        g2.dispose();
+        characterLabel.setIcon(new ImageIcon(combined));
+    } catch (Exception e) {
+        System.err.println("Error loading images: " + imageStr);
+    }
+}
+
     // ──────────────────────────────────────────────
     private void buildAffectionBar(JPanel parent, int x, int y, int w, int h) {
         affectionBar = new JPanel(null) {
@@ -374,6 +426,7 @@ public class GameStoryUI extends JPanel {
 
         if (isStory || isChoices) {
             StoryData.Chapter ch = chapters.get(currentChapter);
+            updateCharacterImage(ch.imagePath);
             locationLbl.setText("[ " + ch.location + " ]");
             if (isStory) {
                 updateStoryText(ch.story);
@@ -381,8 +434,8 @@ public class GameStoryUI extends JPanel {
             if (isChoices) {
                 if (typeTimer != null) typeTimer.stop();
                 String full = ch.story.replace("{player}", playerName)
-                                      .replace("{girl}", GIRL_NAME)
-                                      .replace("\n","<br>");
+                                    .replace("{girl}", GIRL_NAME)
+                                    .replace("\n","<br>");
                 storyText.setText("<html><body style='width:100%'>" + full + "</body></html>");
                 buildChoiceButtons(ch);
             }

@@ -1,6 +1,6 @@
 import java.awt.*;
 import java.awt.event.*;
-import javax.swing.*;
+import javax.swing.*;A
 
 public class RunGame {
 
@@ -183,40 +183,47 @@ public class RunGame {
         applyDisplayMode(mode, frame, null);
     }
 
-    public static void applyDisplayMode(SettingPanel.DisplayMode mode, JFrame frame,
+public static void applyDisplayMode(SettingPanel.DisplayMode mode, JFrame frame,
                                         SettingPanel.Resolution res) {
         GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
         Dimension screen  = Toolkit.getDefaultToolkit().getScreenSize();
 
         if (gd.getFullScreenWindow() != null) gd.setFullScreenWindow(null);
+        
         frame.setVisible(false);
-        frame.dispose();
+        frame.dispose(); // ต้องเรียก dispose ก่อนเปลี่ยน setUndecorated
 
         switch (mode) {
-           {
+            case WINDOWED:
                 frame.setUndecorated(false);
                 frame.setResizable(true);
                 if (res != null) frame.setSize(res.w, res.h);
                 else             frame.setSize(W, H);
                 frame.setLocationRelativeTo(null);
-            }
-            {
+                break; // ต้องมี break เพื่อไม่ให้ไหลไป case ถัดไป
+
+            case BORDERLESS:
                 frame.setUndecorated(true);
                 frame.setResizable(true);
                 if (res != null) frame.setSize(res.w, res.h);
                 else             frame.setSize(screen);
                 frame.setLocationRelativeTo(null);
-            }
-           {
+                break;
+
+            case FULLSCREEN:
                 frame.setUndecorated(true);
                 frame.setResizable(false);
-                if (gd.isFullScreenSupported()) gd.setFullScreenWindow(frame);
-                else { frame.setSize(screen); frame.setLocationRelativeTo(null); }
-            }
+                if (gd.isFullScreenSupported()) {
+                    gd.setFullScreenWindow(frame);
+                } else {
+                    frame.setSize(screen);
+                    frame.setLocationRelativeTo(null);
+                }
+                break;
         }
         frame.setVisible(true);
     }
-
+    
     // ===== Look & Feel =====
     private static void setupLookAndFeel() {
         try { UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName()); }

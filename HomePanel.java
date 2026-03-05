@@ -104,6 +104,8 @@ public class HomePanel extends JPanel {
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         Graphics2D g2 = (Graphics2D) g;
+        ImageIcon bgIcon = new ImageIcon("res/home_bg.jpg");
+        Image bgImg = bgIcon.getImage();
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g2.setPaint(new GradientPaint(0, 0, new Color(0xF7D6E0), 0, getHeight(), new Color(0xD9AED0)));
         g2.fillRect(0, 0, getWidth(), getHeight());

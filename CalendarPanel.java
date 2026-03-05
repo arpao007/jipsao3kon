@@ -26,7 +26,7 @@ public class CalendarPanel extends JPanel {
 
         addComponentListener(new ComponentAdapter() {
             @Override public void componentShown(ComponentEvent e) { refresh(); }
-            @Override public void componentResized(ComponentEvent e){ refresh(); }
+            // ไม่ใช้ componentResized — จะ loop ไม่สิ้นสุดเพราะ refresh() เรียก revalidate()
         });
     }
 

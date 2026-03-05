@@ -87,15 +87,6 @@ public class GameLogic {
         return (getDayCount() % 112) / 28;
     }
 
-    public String getSeasonName() {
-        return switch (getSeasonIndex()) {
-            case 0 -> "ฤดูใบไม้ผลิ";
-            case 1 -> "ฤดูร้อน";
-            case 2 -> "ฤดูใบไม้ร่วง";
-            default -> "ฤดูหนาว";
-        };
-    }
-
     public int getDayInSeason() { // 1..28
         return ((getDayCount() % 112) % 28) + 1;
     }
@@ -119,7 +110,7 @@ public class GameLogic {
         sleep();
         resetDailyLimits();
         System.out.println("[GameLogic] ข้ามวัน -> " + gameDate
-                + " | " + getSeasonName() + " สัปดาห์ " + getWeekInSeason()
+                + " | " + " สัปดาห์ " + getWeekInSeason()
                 + " วัน " + getDayInSeason() + "/28");
     }
 
@@ -132,7 +123,6 @@ public class GameLogic {
         lastGiftResetDate = gameDate;
         lastWorkResetDate = gameDate;
 
-        // TODO: ถ้าคุณมีระบบ "โควต้าซื้อของ" ใน Shoplogic/ShopPanel
         // ให้มาเพิ่มรีเซ็ตตรงนี้ด้วย
         System.out.println("[GameLogic] รีเซ็ตโควต้ารายวัน: gift=3, work=0");
     }
@@ -214,7 +204,7 @@ public class GameLogic {
 
     public String getSelectedCharacter() { return selectedCharacter; }
     public void setSelectedCharacter(String name) {
-        if (name == null || name.isBlank()) return;
+        if (name == null ) return;
         this.selectedCharacter = name.trim();
     }
 
@@ -287,14 +277,13 @@ public class GameLogic {
         if (giftType == null) return 3;
 
         switch (giftType.toLowerCase()) {
-            case "cheap" -> { cost = GIFT_CHEAP_COST; affectionGain = 5; }
-            case "normal" -> { cost = GIFT_NORMAL_COST; affectionGain = 15; }
-            case "expensive" -> { cost = GIFT_EXPENSIVE_COST; affectionGain = 50; }
-            default -> {
+                        { cost = GIFT_CHEAP_COST; affectionGain = 5; }
+                        { cost = GIFT_NORMAL_COST; affectionGain = 15; }
+                        { cost = GIFT_EXPENSIVE_COST; affectionGain = 50; }
+                        {
                 System.out.println("[GameLogic] ERROR: ประเภทของขวัญไม่ถูกต้อง: " + giftType);
                 return 3;
             }
-        }
 
         if (!spendMoney(cost)) return 1;
 
@@ -310,9 +299,6 @@ public class GameLogic {
     public int getGiftNormalCost() { return GIFT_NORMAL_COST; }
     public int getGiftExpensiveCost() { return GIFT_EXPENSIVE_COST; }
 
-    // =====================================================
-    // ระบบงาน
-    // =====================================================
     private void checkWorkReset() {
         // ใช้ gameDate ไม่ใช้ LocalDate.now()
         if (!gameDate.equals(lastWorkResetDate)) {
@@ -331,10 +317,6 @@ public class GameLogic {
         return MAX_WORK_PER_DAY;
     }
 
-    /**
-     * ทำงาน - ใช้พลังงาน 20 ได้เงิน 100
-     * คืนค่า: 0=สำเร็จ, 1=พลังงานไม่พอ, 2=ทำงานครบวันนี้แล้ว
-     */
     public int work() {
         checkWorkReset();
 
@@ -367,7 +349,7 @@ public class GameLogic {
             "📅 ปีที่ %d | %s | สัปดาห์ %d | วัน %d/28\n" +
             "💰 เงิน: %d บาท | ⚡ พลังงาน: %d/%d | 💝 ความชอบ: %d/100\n" +
             "🎁 ของขวัญวันนี้: %d/3 | 💼 ทำงาน: %d/%d",
-            getYearIndex(), getSeasonName(), getWeekInSeason(), getDayInSeason(),
+            getYearIndex(), getWeekInSeason(), getDayInSeason(),
             money, energy, MAX_ENERGY, affection,
             giftQuotaToday, workCountToday, MAX_WORK_PER_DAY
         );
@@ -376,7 +358,7 @@ public class GameLogic {
     public void printDebugInfo() {
         System.out.println("\n========== DEBUG INFO ==========");
         System.out.println("วันในเกม: " + gameDate + " | ปีที่ " + getYearIndex()
-                + " | " + getSeasonName() + " | วัน " + getDayInSeason() + "/28");
+                + " | " + " | วัน " + getDayInSeason() + "/28");
         System.out.println("เงิน: " + money);
         System.out.println("พลังงาน: " + energy + "/" + MAX_ENERGY);
         System.out.println("ความชอบ มีน: " + affection + "/" + MAX_AFFECTION);

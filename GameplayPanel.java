@@ -80,7 +80,6 @@ public class GameplayPanel extends JPanel {
 
     private void toggleHamburgerMenu(JButton anchor) {
         if (hamburgerPopup != null && hamburgerPopup.isVisible()) {
-            closeHamburgerMenu();
             return;
         }
         showHamburgerMenu(anchor);

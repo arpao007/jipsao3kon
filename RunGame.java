@@ -193,21 +193,21 @@ public class RunGame {
         frame.dispose();
 
         switch (mode) {
-            case WINDOWED -> {
+           {
                 frame.setUndecorated(false);
                 frame.setResizable(true);
                 if (res != null) frame.setSize(res.w, res.h);
                 else             frame.setSize(W, H);
                 frame.setLocationRelativeTo(null);
             }
-            case BORDERLESS -> {
+            {
                 frame.setUndecorated(true);
                 frame.setResizable(true);
                 if (res != null) frame.setSize(res.w, res.h);
                 else             frame.setSize(screen);
                 frame.setLocationRelativeTo(null);
             }
-            case FULLSCREEN -> {
+           {
                 frame.setUndecorated(true);
                 frame.setResizable(false);
                 if (gd.isFullScreenSupported()) gd.setFullScreenWindow(frame);

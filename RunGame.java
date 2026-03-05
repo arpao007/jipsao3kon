@@ -1,6 +1,6 @@
 import java.awt.*;
 import java.awt.event.*;
-import javax.swing.*;A
+import javax.swing.*;
 
 public class RunGame {
 
@@ -223,7 +223,7 @@ public static void applyDisplayMode(SettingPanel.DisplayMode mode, JFrame frame,
         }
         frame.setVisible(true);
     }
-    
+
     // ===== Look & Feel =====
     private static void setupLookAndFeel() {
         try { UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName()); }

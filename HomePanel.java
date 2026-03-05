@@ -31,6 +31,7 @@ public class HomePanel extends JPanel {
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g2.setPaint(new GradientPaint(0, 0, new Color(0xF7D6E0), 0, getHeight(), new Color(0xD9AED0)));
         g2.fillRect(0, 0, getWidth(), getHeight());
+        g2.drawImage(bgIcon.getImage(), 0, 0, getWidth(), getHeight(), this);
     }
 
     private void rebuild() {
